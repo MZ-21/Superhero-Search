@@ -18,6 +18,20 @@ app.get('/api/parts',(req,res)=>{
     console.log(`Get request for ${req.url}`);
     res.send(parts);
 });
+//using get request to get info for a part
+app.get('/api/parts/:part_id',(req,res)=>{
+    const id = req.params.part_id;
+    console.log(`Get request for ${req.url}`);//prints in cmd
+    const part = parts.find(p => p.id === parseInt(id)); 
+    //if the id in the object === to one in request. checking type = as well. input sanitization when converting id to int
+    if(part){
+        res.send(part);
+    }
+    else {
+        //if the id doesnt match, there is an error and the part wasnt found
+        res.status(404).send(`Part ${id} was not found!`);
+    }
+});
 
 
 
