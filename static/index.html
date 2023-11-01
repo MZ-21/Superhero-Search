@@ -7,6 +7,20 @@
         </head>
         <body>
             <h1>Parts Emporium</h1>
-            <p class="intro">We got your part</p>
+            <div class="intro">
+                <h2>Our Inventory <button id="get-inventory">Reload</button></h2>
+                <ol id="inventory"></ol>
+            </div>
+            <div class="admin">
+                <h2>Manage Inventory</h2>
+                <span>
+                    Name: <input type="text" id="name">
+                    Colour: <input type="text" id="colour">
+                    Stock: <input type="text" id="stock">
+                    <button id="additem">Add</button>
+                </span>
+                <span id="status"></span>
+            </div>
+            <script defer src="script.js"></script> 
         </body>
     </html>
