@@ -3,7 +3,7 @@ const low = require('lowdb');
 const app = express();
 
 const db = low(new FileSync('superheroes/superhero_info.json')); //creating and intializing a lowdb instance, connecting to a json file 
-const port = 3000; 
+const port = process.env.PORT || 3000;
 const router = express.Router(); //route object
 
 
