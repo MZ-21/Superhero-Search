@@ -1,16 +1,12 @@
-const express = require('express');
-const app = express()
+const express = require('express'); //importing module from dependencies using require
+const low = require('lowdb');
+const app = express();
+
+const db = low(new FileSync('superheroes/superhero_info.json')); //creating and intializing a lowdb instance, connecting to a json file 
 const port = 3000; 
 const router = express.Router(); //route object
 
 
-//temporary database
-const parts = [
-    {id:100, name:"Belt",colour: "brown", stock:0},
-    {id:101, name:"Clip",colour: "brown", stock:0},
-    {id:102, name:"Belt",colour: "red", stock:0},
-    {id:103, name:"Hat",colour: "purple", stock:0},
-];
 
 //setup serving front-end code
 app.use(`/`,express.static('static'))
