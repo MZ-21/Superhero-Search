@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devStart":"nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,11 @@
   "homepage": "https://github.com/mzekria2/se3316-lab3-mzekria2#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "lowdb": "^6.1.1"
+    "lowdb": "^6.1.1",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "nodemon": "^3.0.1"
   }
 }
