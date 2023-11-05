@@ -7,10 +7,28 @@
         </head>
         <body>
             <h1>Superheroes</h1>
-            <div class="search">
-                <input type="text" placeholder="Superhero ID"></input>
-                <button>Find</button>
+            <div id="search" class="search">
+                <div>
+                    <div class="id-search">
+                        <input id="id-input" type="text" placeholder="Superhero ID"></input>
+                        <button id="id-btn-info">Find Hero</button>
+                        <button id="id-btn-power">Find Power</button>
+                    </div>
+                    <div class="display-publishers">
+                        <button id="publishers-btn">Display Publishers</button>
+
+                    </div>
+                
+                </div>
+                <div id="result" class="result">
+
+                </div> 
+                <!-- <div>
+                    <input id="id-input" type="text" placeholder="Superhero ID"></input>
+                    
+                </div> -->
             </div>
+            
             <script defer src="script.js"></script> 
         </body>
     </html>
