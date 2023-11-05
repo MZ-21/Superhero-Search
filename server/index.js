@@ -2,16 +2,20 @@ const express = require('express'); //importing module from dependencies using r
 const app = express();//used to configure server
 const path = require('path'); //path module to manipulate file paths
 const fs = require('fs'); //module for files
-// const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-// //url for db
-// const dbURL = 'mongodb://localhost/superheroes/superhero_info.json';
-// //connecting to db
-// mongoose.connect(dbURL);
-// const db = mongoose.connection;
-// db.on('error',(error)=> {console.error(error)})
-// db.once('open', ()=> console.log("Connected"))
+//url for db
+const dbURL = 'mongodb+srv://mijz:3e74i5ZMp5PzNrWk@cluster1.1szi2ht.mongodb.net/?retryWrites=true&w=majority';
+//connecting to db
+mongoose.connect(dbURL, {
+    useNewUrlParser: true,
+})
+const db = mongoose.connection;
+    db.on('error',(error)=> {console.error(error)})
+    db.once('open', ()=> console.log("Connected"))
 
+
+const heroList = require(".../models/model")
 
 const port = 5000;
 const router = express.Router(); //route object
@@ -34,6 +38,56 @@ app.get('/',(req,res)=>{
 //reading from json 
 const filePathToInfo = "superheroes/superhero_info.json";
 const filePathPowers = "superheroes/superhero_powers.json";
+
+
+router.route('/limit/:number?/:pattern/:name')
+    .get((req,res)=>{
+        console.log("hiiiiiiiii");
+        var limit = req.params.number;
+        var pattern = req.params.pattern;
+        var namePattern = req.params.name;
+        // console.log(limit);
+        // console.log(pattern);
+        // console.log(namePattern);
+        fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
+            if(err){
+                console.log(err);
+            }
+            try {
+                var superheroes = JSON.parse(data2);
+                var heroesArray = []
+    
+                for(hero of superheroes){
+                    for(key in hero){
+                        // console.log(String(key).toLowerCase());
+                        // console.log(String(pattern).toLowerCase());
+                        
+                        if(String(key).toLowerCase() === String(pattern).toLowerCase()){
+                            console.log(key, " kkkk")
+                            if(String(hero[key]).toLowerCase() === String(namePattern).toLowerCase()){
+                                if(String(limit) === String(undefined)){
+                                    heroesArray.push(hero.id);
+                                }
+                                else if(heroesArray.length <= limit-1){
+                                    heroesArray.push(hero.id);
+                                }
+                            }
+                        
+                        }
+                    }
+                    
+                }
+                if(heroesArray.length > 0){
+                    // console.log(heroesArray);
+                    res.send(heroesArray);
+                }
+               
+            }
+            catch (error){     
+                res.status(500).send(`server unable to fulfill request! ${error}`);
+            } 
+        })
+    });
 
 
 //getting publishers
@@ -84,7 +138,29 @@ router.route('/:id')
             } 
         })
     });
-    
+
+    router.route('/field/:field')
+    .get((req,res) =>{
+        fs.readFile(filePathToInfo, 'utf-8', (err,data)=>{
+            try {
+                var parsedHeroes = JSON.parse(data);
+                const listHeroes = [];
+                for(hero of parsedHeroes){
+                    for(key in hero){
+                        if(String(hero[key]).toLowerCase() ===  String(req.params.field).toLowerCase()){
+                            listHeroes.push(hero);
+                        }
+                    }
+                }
+                if(listHeroes.length >0 ){
+                    res.send(listHeroes);
+                }
+            }
+            catch (error){
+                res.status(500).send(`server unable to fulfill request!`);
+            } 
+        })
+    });
 
 //getting powers based on ID
 router.route('/:id/powers')
@@ -108,7 +184,6 @@ router.route('/:id/powers')
                         })         
                     }
                 }
-               
             }
             catch (error){     
                 res.status(500).send(`server unable to fulfill request! ${error}`);
