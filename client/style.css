@@ -1,14 +1,45 @@
 body{
+    margin-top: 30px;
     font-family: 'Courier New', Courier, monospace;
     height: fit-content;
+    background-image: linear-gradient(to right, #fc5c7d, #6a82fb);
+    /* linear-gradient(to right, #0f0c29, #302b63, #24243e); */
+}
+.title-superheroes{
+    display: block;
+    margin: auto auto;
+    width: 300px;
+    text-align: center;
+ 
 }
 .list-heroes {
     list-style: none;
     margin: 0;
 }
+.btn{
+    width: 90px;
+    height: 35px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+.btn:hover {
+    background-color: rgb(228, 225, 225);
+}
+.input{
+    width: 100px;
+    height: 30px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+}
 .result {
     /* display: grid;
     grid-template-columns: 1fr 1fr 1fr; */
+}
+.id-search {
+    display: block;
+    margin: auto auto;
+    margin-top: 30px;
+    width: 310px;
 }
 .list-publishers{
     list-style: none;
@@ -20,4 +51,10 @@ body{
 }
 .publisher-header{
     margin: 10px 0 0 33px;
+}
+.display-publishers {
+    display: block;
+    margin: auto auto;
+    margin-top: 50px;
+    width: 90px;
 }
