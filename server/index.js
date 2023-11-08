@@ -219,7 +219,7 @@ function readPowersFile(hero){//function to read from power file
                 var parsedPowerData = JSON.parse(powerData);
                 var powerFound;
                 for (power of parsedPowerData) {
-                    if (String(hero.name) === String(power.hero_names)) {
+                    if (String(hero.name).toLowerCase() === String(power.hero_names).toLowerCase()) {
                         powerFound = power;
                     }
                 }
@@ -241,7 +241,7 @@ router.route(`/h/add`)
                         list.superhero = list.superhero.concat(req.body.superhero);
                         
                     }else {
-                        return res.status(400).send("Bad request, this list doesn't exist");
+                        return res.status(404).send("this list doesn't exist");
                     }
                 }else {
                     // If superheroes is not an array or is empty, send a bad request response
@@ -277,8 +277,10 @@ router.route("/heroes/list/create")
                 const savedList = await list.save();
                 res.status(201).json(savedList);    
             } catch (err) {
-                res.status(400).send(`Bad request please check the format of the superheroes sent ${err}`)
+                res.status(400).send(`Bad request ${err}`)
             }
+        }{
+            res.status(400).send("Invalid list name. It must contain alphabetical characters only.");
         }
     });
 
@@ -306,7 +308,10 @@ router.route('/heroes/lists')   //displays all lists
                 let list = await HeroList.findOne({listN: `${listND}`});
                 //console.log(list.length)
                 if(list){
-                    res.json(list)
+                    return res.json(list)
+                }
+                else {
+                    return res.status(404).send('No list found');
                 }
             } catch (error) {
                 res.status(404).send('List not found');
@@ -327,7 +332,7 @@ router.route('/list/find/:nameS')//finds info to save to a list
                     var infoAll = {"hero":"","powers":""}
                     var sent = false;
                     for(hero of superheroes){ 
-                        if(String(hero.name) === String(nameSWant)){
+                        if(String(hero.name).toLowerCase() === String(nameSWant).toLowerCase()){
                             infoAll.hero = hero;
                             readPowersFile(hero).then((powers)=>{
                                 for(k in powers){
