@@ -12,15 +12,15 @@ const heroSchema = new mongoose.Schema({
         Gender: String,
         Eyecolor: String,
         Race: String,
-        Haircolor : String,
-        Height:String,
-        Publisher : String,
-        Skincolor :String,
+        Haircolor: String,
+        Height: String,
+        Publisher: String,
+        Skincolor: String,
         Alignment: String,
-        Weight : String   
-        
+        Weight: String,
+        Powers: String   
         }
    ]
 })
 
-module.exports = mongoose.model('Heroes', heroSchema)
+module.exports = mongoose.model('HeroList', heroSchema);

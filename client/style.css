@@ -12,15 +12,30 @@ body{
     text-align: center;
  
 }
-.list-heroes {
-    list-style: none;
+/* .list-heroes-id {
+  
+} */
+.result {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    column-gap: 10px;
+    row-gap: 10px;
+}
+.heroes-id-div{
     margin: 0;
+    background-color: lightgray;
+    width: 200px;
+    padding: 5px;
+    padding-left: 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
 }
 .btn{
     width: 90px;
     height: 35px;
     border: 1px solid transparent;
     border-radius: 5px;
+    background-color: rgb(189, 185, 185);
 }
 .btn:hover {
     background-color: rgb(228, 225, 225);
@@ -55,6 +70,55 @@ body{
 .display-publishers {
     display: block;
     margin: auto auto;
-    margin-top: 50px;
+    margin-top: 30px;
     width: 90px;
+}
+.box-for-list{
+    background-color: rgb(214, 210, 210);
+    padding: 18px;
+    padding-top: 15px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+.field-search {
+    display: block;
+    margin: auto auto;
+    width: 209px;
+    margin-top: 30px;
+}
+
+.limit-search{
+
+    display: block;
+    margin: auto auto;
+    width: 440px;
+    margin-top: 30px;
+}
+
+.display-heroes-list {
+    display: block;
+    margin: auto auto;
+    width: 425px;
+    margin-top: 30px;
+
+}
+
+.create-new-list{
+    display: block;
+    margin: auto auto;
+    width: 307px;
+    margin-top: 30px;
+}
+.find-list-display{
+    display: block;
+    margin: auto auto;
+    width: 208px;
+    margin-top: 30px;
+}
+.sort{
+    display: block;
+    margin: auto auto;
+    width: 208px;
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
