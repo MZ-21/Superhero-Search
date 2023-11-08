@@ -2,21 +2,6 @@
 const routerPath = "/api/superheroes";
 const routerPath2 = "/db/heroes";
 
-///limit/:number?/:pattern/:name
-
-function validateInt(intCheck,stringCheck){
-    console.log(intCheck)
-  
-    if(intCheck != parseInt(intCheck)){
-        alert("Input Must Be An Integer!");
-        return false;
-    }
-    
-    else{
-        return true;
-    }
-
-}
 
 function isAlphabetical(input) {
     const regex = /^[\p{L} ]+$/u;
@@ -34,20 +19,6 @@ function isAlphabetical(input) {
     return regex.test(input);
   }
   
-  
-// function validateString(stringCheck){
-//     console.log(stringCheck)
-//     console.log(typeof(stringCheck))
-//     if(stringCheck !== String(stringCheck)){
-//         alert("Input Must Be String!")
-//         return false;
-//     }
-//     else{
-//         console.log("is a string")
-//         return true;
-//     }
-
-// }
 
 function getLimitedSearch() {
 

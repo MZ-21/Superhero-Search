@@ -42,61 +42,68 @@ const filePathToInfo = "superheroes/superhero_info.json";
 const filePathPowers = "superheroes/superhero_powers.json";
 
 
+function isAlphabetical(input) {
+    const regex = /^[\p{L} ]+$/u;
+    return regex.test(input);
+  }
+
+  function isInteger(input) {
+    const regex = /^\p{Nd}+$/u;
+    return regex.test(input);
+  }
+  
+  
 router.route('/limit/:number?/:pattern/:name')
     .get((req,res)=>{
-        console.log("hiiiiiiiii");
+        
         var limit = req.params.number;
         var pattern = req.params.pattern;
         var namePattern = req.params.name;
-        // console.log(limit);
-        // console.log(pattern);
-        // console.log(namePattern);
-        fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
-            console.log("hii")
-            if(err){
-                console.log(err);
-            }
-            try {
-                var superheroes2 = JSON.parse(data2);
-                const heroesArray = []
+        if(isInteger(limit) && isAlphabetical(pattern) && isAlphabetical(namePattern)){
+            fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
+                //console.log("hii")
+                if(err){
+                    console.log(err);
+                }
+                try {
+                    var superheroes2 = JSON.parse(data2);
+                    const heroesArray = []
     
-                for(hero of superheroes2){
-                    for(key in hero){
-                        // console.log(String(key).toLowerCase());
-                        // console.log(String(pattern).toLowerCase());
-                        
-                        if(String(key).toLowerCase() === String(pattern).toLowerCase()){
-                            
-                            if(String(hero[key]).toLowerCase() === String(namePattern).toLowerCase()){
-                                if(String(limit) === String(undefined)){
-                                    heroesArray.push(String(hero.id));
-                                }
-                                else if(heroesArray.length <= limit-1){
-                                    heroesArray.push(String(hero.id));
+                    for(hero of superheroes2){
+                        for(key in hero){
+                            // console.log(String(key).toLowerCase());
+                            // console.log(String(pattern).toLowerCase());
+                            if(String(key).toLowerCase() === String(pattern).toLowerCase()){
+                                if(String(hero[key]).toLowerCase() === String(namePattern).toLowerCase()){
+                                    if(String(limit) === String(undefined)){
+                                        heroesArray.push(String(hero.id));
+                                    }
+                                    else if(heroesArray.length <= limit-1){
+                                        heroesArray.push(String(hero.id));
+                                    }
                                 }
                             }
-                        
-                        }
+                        }    
                     }
-                    
+                    if(heroesArray.length > 0){
+                        //console.log(heroesArray," the array");
+                        res.send(heroesArray);
+                    }
                 }
-                if(heroesArray.length > 0){
-                    console.log(heroesArray," the array");
-                    res.send(heroesArray);
-                }
-               
-            }
-            catch (error){     
-                res.status(500).send(`server unable to fulfill request! ${error}`);
-            } 
-        })
+                catch (error){     
+                    res.status(500).send(`server unable to fulfill request! ${error}`);
+                } 
+            })
+        }
+        else{
+            console.log("Invalid input. Please enter alphabetical characters only.");
+        }
     });
 
 
 //getting publishers
 router.route('/publisher')
     .get((req,res)=>{
-        console.log("err")
         fs.readFile(filePathToInfo, 'utf-8', (err,heroData)=>{
             try {
                 if(err){
@@ -124,74 +131,81 @@ router.route('/publisher')
 
 router.route('/:id')
     .get((req,res) =>{
-        fs.readFile(filePathToInfo, 'utf-8', (err,data)=>{
-            try {
-                var parsedHeroes = JSON.parse(data);
-                for(hero of parsedHeroes){
-                    // console.log(typeof(hero.id),typeof(req.params.id))
-                    if(parseInt(hero.id) === parseInt(req.params.id)){
-                        res.send(hero);
-                        // found=true;
-                        // break;
-                    }
-                }
-            }
-            catch (error){
-                res.status(500).send(`server unable to fulfill request!`);
-            } 
-        })
-    });
 
-    router.route('/field/:field')
-    .get((req,res) =>{
-        fs.readFile(filePathToInfo, 'utf-8', (err,data)=>{
-            try {
-                var parsedHeroes = JSON.parse(data);
-                const listHeroes = [];
-                for(hero of parsedHeroes){
-                    for(key in hero){
-                        if(String(hero[key]).toLowerCase() ===  String(req.params.field).toLowerCase()){
-                            listHeroes.push(hero);
+        if(isInteger(req.params.id)){
+            fs.readFile(filePathToInfo, 'utf-8', (err,data)=>{
+                try {
+                    var parsedHeroes = JSON.parse(data);
+                    for(hero of parsedHeroes){
+                        // console.log(typeof(hero.id),typeof(req.params.id))
+                        if(parseInt(hero.id) === parseInt(req.params.id)){
+                            res.send(hero);
+                            // found=true;
+                            // break;
                         }
                     }
                 }
-                if(listHeroes.length >0 ){
-                    res.send(listHeroes);
+                catch (error){
+                    res.status(500).send(`server unable to fulfill request!`);
+                } 
+            })
+        }
+     });
+
+    router.route('/field/:field')
+    .get((req,res) =>{
+        if(isAlphabetical(req.params.field)){
+            fs.readFile(filePathToInfo, 'utf-8', (err,data)=>{
+                try {
+                    var parsedHeroes = JSON.parse(data);
+                    const listHeroes = [];
+                    for(hero of parsedHeroes){
+                        for(key in hero){
+                            if(String(hero[key]).toLowerCase() ===  String(req.params.field).toLowerCase()){
+                                listHeroes.push(hero);
+                            }
+                        }
+                    }
+                    if(listHeroes.length >0 ){
+                        res.send(listHeroes);
+                    }
                 }
-            }
-            catch (error){
-                res.status(500).send(`server unable to fulfill request!`);
-            } 
-        })
+                catch (error){
+                    res.status(500).send(`server unable to fulfill request!`);
+                } 
+            })
+        }
     });
 
 //getting powers based on ID
 router.route('/:id/powers')
     .get((req,res)=>{
         const id = req.params.id;
-        fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
-            if(err){
-                console.log(err);
-            }
-            try {
-                var superheroes = JSON.parse(data2);
-                for(hero of superheroes){
-                    if(parseInt(hero.id) === parseInt(id)){
-                        readPowersFile(hero).then((powers)=>{
-                            found = true;
-                            console.log(found)
-                            res.send(powers);
+        if(isInteger(id)){
+            fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
+                if(err){
+                    console.log(err);
+                }
+                try {
+                    var superheroes = JSON.parse(data2);
+                    for(hero of superheroes){
+                        if(parseInt(hero.id) === parseInt(id)){
+                            readPowersFile(hero).then((powers)=>{
+                                found = true;
+                                console.log(found)
+                                res.send(powers);
                            
-                        }).catch((error2)=> {
-                            console.log(error2)
-                        })         
+                            }).catch((error2)=> {
+                                console.log(error2)
+                            })         
+                        }
                     }
                 }
-            }
-            catch (error){     
-                res.status(500).send(`server unable to fulfill request! ${error}`);
-            } 
-        })
+                catch (error){     
+                    res.status(500).send(`server unable to fulfill request! ${error}`);
+                } 
+            })
+        }
     });
 
 
@@ -216,38 +230,39 @@ function readPowersFile(hero){//function to read from power file
 }
 router.route(`/h/add`)   
     .post(async (req, res) => {
-        try {console.log("jere")
-            let list = await HeroList.findOne({listN: req.body.listN}); //finding list
-            // Check if req.body.superheroes is an array and has elements
-            if(Array.isArray(req.body.superhero) && req.body.superhero.length){
-              // If the list exists, concatenate the new superheroes to it
-              console.log("jere2")
-              if (list) {
-                list.superhero = list.superhero.concat(req.body.superhero);
-                console.log("jere3")
-        
-              }else {
-                return res.status(400).send("Bad request, this list doesn't exist");
+        if(isAlphabetical(req.body.listN)){
+            try {
+                let list = await HeroList.findOne({listN: req.body.listN}); //finding list
+                // Check if req.body.superheroes is an array and has elements
+                if(Array.isArray(req.body.superhero) && req.body.superhero.length){
+                    // If the list exists, concatenate the new superheroes to it
+                    //console.log("jere2")
+                    if (list) {
+                        list.superhero = list.superhero.concat(req.body.superhero);
+                        
+                    }else {
+                        return res.status(400).send("Bad request, this list doesn't exist");
+                    }
+                }else {
+                    // If superheroes is not an array or is empty, send a bad request response
+                    return res.status(400).send("Bad request make sure superheroes is a non-empty array");
+                }
+                // Save the updated list or the new list
+                const savedList = await list.save();
+                res.status(201).json(savedList);
+            } catch (err) {
+                res.status(400).send("Bad request please check the format of the superheroes sent")
             }
-        }else {
-          // If superheroes is not an array or is empty, send a bad request response
-          return res.status(400).send("Bad request make sure superheroes is a non-empty array");
         }
-        // Save the updated list or the new list
-        const savedList = await list.save();
-        res.status(201).json(savedList);
-
-      } catch (err) {
-        res.status(400).send("Bad request please check the format of the superheroes sent")
-      }
     });
 
 router.route("/heroes/list/create")
     .post(async (req, res) => {//creating an empty list
-        try {
-            let list = await HeroList.findOne({listN: req.body.listN}); //finding list
-            // // Check if req.body.superheroes is an array and doesnt have elements
-            // if(Array.isArray(req.body.superhero) && req.body.superhero.some(superhero => superhero.id === "")){
+        if(isAlphabetical(req.body.listN)){
+            try {
+                let list = await HeroList.findOne({listN: req.body.listN}); //finding list
+                // // Check if req.body.superheroes is an array and doesnt have elements
+                // if(Array.isArray(req.body.superhero) && req.body.superhero.some(superhero => superhero.id === "")){
                 // If the list exists, not good bc creating a new list
                 if (list) {
                     return res.status(400).send("This list exists, choose a new name!");
@@ -259,23 +274,16 @@ router.route("/heroes/list/create")
                     superhero: [] // Assuming superheroes is an array of superhero objects
                     });
                 }
-              
-            //} else {
-            //// If superheroes is not an array or isnt empty, send a bad request response
-            //return res.status(400).send("Bad request make sure superheroes is a non-empty array");
-            // }
-            // Save the updated list or the new list
-            const savedList = await list.save();
-            res.status(201).json(savedList);
-
-        } catch (err) {
-            res.status(400).send(`Bad request please check the format of the superheroes sent ${err}`)
+                const savedList = await list.save();
+                res.status(201).json(savedList);    
+            } catch (err) {
+                res.status(400).send(`Bad request please check the format of the superheroes sent ${err}`)
+            }
         }
     });
 
 router.route('/heroes/lists')   //displays all lists
     .get(async (req, res) => {
-        console.log("FFF")
         try {
             let list = await HeroList.find({}, 'listN superhero');
             if(list.length > 0){
@@ -288,118 +296,125 @@ router.route('/heroes/lists')   //displays all lists
             res.status(500).send("Internal Server Error");
         }
     })
+
     //display certain list
     router.route('/heroes/lists/:listND')   
     .get(async (req, res) => {
         const listND = req.params.listND;
-        try {
-            let list = await HeroList.findOne({listN: `${listND}`});
-            console.log(list.length)
-            if(list){
-                res.json(list)
+        if(isAlphabetical(listND)){
+            try {
+                let list = await HeroList.findOne({listN: `${listND}`});
+                //console.log(list.length)
+                if(list){
+                    res.json(list)
+                }
+            } catch (error) {
+                res.status(404).send('List not found');
             }
-        } catch (error) {
-            res.status(404).send('List not found');
         }
     })
 
 router.route('/list/find/:nameS')//finds info to save to a list
     .get((req,res)=>{
         const nameSWant = String(req.params.nameS)
-        fs.readFile(filePathToInfo, 'utf-8', (err,data5)=>{
-            if(err){
-                console.log(err);
-            }
-            try {
-                var superheroes = JSON.parse(data5);
-                var infoAll = {"hero":"","powers":""}
-                var sent = false;
-                for(hero of superheroes){ 
-                    if(String(hero.name) === String(nameSWant)){
-                        infoAll.hero = hero;
-                        readPowersFile(hero).then((powers)=>{
-                            for(k in powers){
-                                if(String(powers[k]) === "True"){
-                                    infoAll.powers += `${k},`;
+        if(isAlphabetical(nameSWant)){
+            fs.readFile(filePathToInfo, 'utf-8', (err,data5)=>{
+                if(err){
+                    console.log(err);
+                }
+                try {
+                    var superheroes = JSON.parse(data5);
+                    var infoAll = {"hero":"","powers":""}
+                    var sent = false;
+                    for(hero of superheroes){ 
+                        if(String(hero.name) === String(nameSWant)){
+                            infoAll.hero = hero;
+                            readPowersFile(hero).then((powers)=>{
+                                for(k in powers){
+                                    if(String(powers[k]) === "True"){
+                                        infoAll.powers += `${k},`;
+                                    }
                                 }
-                            }
-                        if(!sent){
-                         res.send(infoAll);
-                         sent= true;
+                                if(!sent){
+                                    res.send(infoAll);
+                                    sent= true;
+                                }
+                            }).catch((error2)=> {
+                                console.log(error2)
+                            })         
                         }
-                        }).catch((error2)=> {
-                            console.log(error2)
-                        })         
                     }
                 }
+                catch (error){     
+                    res.status(500).send(`server unable to fulfill request! ${error}`);
+                } 
                 
-            }
-            catch (error){     
-                res.status(500).send(`server unable to fulfill request! ${error}`);
-            } 
-        })
+            })
+        }
     })
     
 router.route('/delete/hero/:inputNM')
     .post(async (req, res) => {
-        console.log("m2")
+        //console.log("m2")
         const nameHeroCheck = req.params.inputNM;
-        try {
-            console.log("m33")
-            let list = await HeroList.findOne({listN: req.body.listN}); //finding list
-            var flag = false;
-            // Check if req.body.superheroes is an array and has elements
-            if(req.body.listN){
-              // If the list exists, remove hero
-              //console.log(list);
-              if (list && (list.superhero.length > 0)) {
-                for(heroOb of list.superhero){
-                    //console.log(String(heroOb.name).toLowerCase(),String(nameHeroCheck).toLowerCase(),String(heroOb.name).toLowerCase() == String(nameHeroCheck).toLowerCase())
-                    if(String(heroOb.name).toLowerCase() == String(nameHeroCheck).toLowerCase()){
-                        console.log("in")
-                        list.superhero = list.superhero.filter(superhero => String(superhero.name).toLowerCase() !== String(nameHeroCheck).toLowerCase());
-                        flag=true;
+        if(isAlphabetical(nameHeroCheck)){
+            try {
+                    //console.log("m33")
+                    let list = await HeroList.findOne({listN: req.body.listN}); //finding list
+                    var flag = false;
+                    // Check if req.body.superheroes is an array and has elements
+                    if(req.body.listN){
+                        // If the list exists, remove hero
+                        //console.log(list);
+                        if (list && (list.superhero.length > 0)) {
+                        for(heroOb of list.superhero){
+                            //console.log(String(heroOb.name).toLowerCase(),String(nameHeroCheck).toLowerCase(),String(heroOb.name).toLowerCase() == String(nameHeroCheck).toLowerCase())
+                            if(String(heroOb.name).toLowerCase() == String(nameHeroCheck).toLowerCase()){
+                                //console.log("in")
+                                list.superhero = list.superhero.filter(superhero => String(superhero.name).toLowerCase() !== String(nameHeroCheck).toLowerCase());
+                                flag=true;
+                            }
+                        }
+                    if(flag==false){
+                        return res.status(404).send("Superhero not in List!");
                     }
-                }
-                if(flag==false){
-                    return res.status(404).send("Superhero not in List!");
-                }
         
-              }else {
-                return res.status(400).send("Bad request, this list is empty");
-            }
-        }else {
-          // If superheroes is not an array or is empty, send a bad request response
-          return res.status(400).send("Bad request make sure there is a list");
-        }
-        // Save the updated list or the new list
-        const savedList = await list.save();
-        res.status(201).json(savedList);
+                    }else {
+                        return res.status(400).send("Bad request, this list is empty");
+                    }
+                }else {
+                    // If superheroes is not an array or is empty, send a bad request response
+                    return res.status(400).send("Bad request make sure there is a list");
+                }
+                // Save the updated list or the new list
+                const savedList = await list.save();
+                res.status(201).json(savedList);
 
-      } catch (err) {
-        console.log("erro11")
-        res.status(400).send("Bad request please check the format of the superheroes sent")
-      }
+            } catch (err) {
+                console.log("erro11")
+                res.status(400).send("Bad request please check the format of the superheroes sent")
+            }
+        }
     });
 
 router.route('/list/delete')
     .delete(async (req, res) => {
-        try {
-            let list = await HeroList.deleteOne({ listN: req.body.listN });
-            
-            if(list.deletedCount === 1){
-                // List deleted successfully
-                console.log('List removed');
-                res.send(list)
+        if(isAlphabetical(req.body.listN)){
+            try {
+                let list = await HeroList.deleteOne({ listN: req.body.listN });
+                if(list.deletedCount === 1){
+                    // List deleted successfully
+                    //console.log('List removed');
+                    res.send(list)
+                }
+                else {
+                    res.status(404).send("List not found!");
+                }
+            } catch (err) {
+                res.status(400).send(`Bad request please check the format of the superheroes  ${err}`)
             }
-            else {
-                res.status(404).send("List not found!");
-            }
-        } catch (err) {
-            res.status(400).send(`Bad request please check the format of the superheroes  ${err}`)
-  }
+        } 
 });
-
 
 
 //installing the router
