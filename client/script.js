@@ -1,6 +1,6 @@
 
 const routerPath = "/api/superheroes";
-const routerPath2 = "/db/heroes";
+const routerPath2 = "/api/users";
 
 
 function isAlphabetical(input) {
@@ -31,12 +31,12 @@ function getLimitedSearch() {
         fetch(`/api/superheroes/limit/${numberResults}/${patternReq}/${nameReq}`)
             .then(res => res.json()
                 .then(dataID => {
-                    console.log(dataID);
                     var divIds = document.createElement('div');
-                    divIds.className = "div-ids";
+                    divIds.className = "heroes-div";
                     var header = document.createElement('h2');
                     header.textContent = `${patternReq}: ${nameReq}`;
                     divIds.appendChild(header);
+
                     for (num of dataID) {
                         var pForId = document.createElement('p');
                         pForId.textContent = `${num}`;
@@ -58,16 +58,22 @@ function getSuperHeroByField() {
                 .then(fieldData => {
                     console.log(fieldData);
                     var result = document.getElementById("result");
-                    var divForSearchField = document.createElement('div');
                     
                     
                     //headerForFields.className = "header-info";
+                    
                     for (info of fieldData) {
+                        var divForSearchField = document.createElement('div');
+                        divForSearchField.className = "heroes-div";
+                        var headerForFields = document.createElement('h2');
                         for (v in info) {
                             console.log(v.name,v)
+                            
                             if(v == "name" || v == "id"){
-                                var headerForFields = document.createElement('h2');
-                                headerForFields.textContent = `${info[v]}, `
+                                if(v=="name"){
+                                    headerForFields.textContent += " ";
+                                }
+                                headerForFields.textContent += `${info[v]}`
                                 divForSearchField.appendChild(headerForFields);
                             }
                             else{
@@ -76,10 +82,10 @@ function getSuperHeroByField() {
                                 divForSearchField.appendChild(pForField);
                             }
                         }
+                        headerForFields.textContent += ":";
+                        result.appendChild(divForSearchField);
                     }
-                   
-                    
-                    result.appendChild(divForSearchField);
+                  
 
                 })
                 .catch((e) => {
@@ -100,7 +106,7 @@ function getSuperheroById() {
             .then(res => res.json() //used to send JSON response, pass json object as arguement, converted to json string 
                 .then(data => {
                     var divForSearchID = document.createElement('div');
-                    divForSearchID.className = "heroes-id-div";
+                    divForSearchID.className = "heroes-div";
                     var result = document.getElementById("result");
                     let elements = Array.from(result.getElementsByTagName("h2"));
            
@@ -125,7 +131,6 @@ function getSuperheroById() {
 
 }
 
-
 function getSuperHeroPower() {
     var idToReq = document.getElementById("id-input").value;
     var parsed = parseInt(idToReq);
@@ -136,6 +141,7 @@ function getSuperHeroPower() {
                 .then(dataPower => {
                     var divResult = document.getElementById("result");
                     var divForPowers = document.createElement('div');
+                    divForPowers.className = "heroes-div";
                     var headerForPowers = document.createElement('h2');
                     var powers = document.createElement('p');
                     headerForPowers.textContent = "POWERS:";
@@ -161,6 +167,7 @@ function getPublishers() {
                 var divResult = document.getElementById("result");
                 divResult.innerHTML = "";
                 var divPublishers = document.createElement('div');
+                divPublishers.className = "div-publishers";
                 var publisherHeader = document.createElement('h2');
                 var ulP = document.createElement('ul');
                 ulP.className = "list-publishers";
@@ -170,6 +177,7 @@ function getPublishers() {
                 for (publisher of publisherData) {
                     var liP = document.createElement('li');
                     liP.textContent = `${publisher}`;
+                    liP.classList.add("publishers")
                     ulP.appendChild(liP);
                 }
                 divPublishers.appendChild(publisherHeader);
@@ -306,31 +314,7 @@ function addHeroes() {
                     })
                         .then(res => res.json()
                             .then(dataH => {
-                                console.log(dataH)
-                                // var r = document.getElementById('result');
-                                // var divL = document.createElement('div');
-                                // divL.className = "box-for-list";
-                                // var ul = document.createElement('ul')
-                                // var li = document.createElement('li')
-                                // var p = document.createElement('p')
-                        
-                                // for (d in dataH) {
-                                //     if (String(d) == "superhero") {
-                                //         console.log("in d")
-                                //         console.log(d, dataH[d], dataH[d].id)
-                                //         for (d2 of dataH[d]) {
-                                //             p.textContent = `id: ${d2.id} name: ${d2.name} Gender: ${d2.Gender} 
-                                //     Eyecolor: ${d2.Eyecolor} Race: ${d2.Race} Hair Colour: ${d2.Haircolor}
-                                //     Height: ${d2.Height} Publisher: ${d2.Publisher} Skin Colour: ${d2.Skincolor}
-                                //     Alignment: ${d2.Alignment} Weight: ${d2.Weight} Power: ${d2.Powers}
-                                //     `
-                                //         }
-                                //     }
-                                //     li.appendChild(p)
-                                // }
-                                // ul.appendChild(li);
-                                // divL.appendChild(ul);
-                                // r.appendChild(divL)
+                            
                             })
                             .catch((error) => {
                                 console.log(error);
@@ -389,13 +373,21 @@ function findAList() {
                             //console.log("inn")
                             for(value of dataFind[obj]){
                                 //console.log(dataFind[obj],"mmm")
-
                                 var p = document.createElement('p')
                                 //console.log(value)
-                                p.textContent = `id: ${value.id} name: ${value.name} Gender: ${value.Gender} 
-                                Eye color: ${value["Eye color"]} Race: ${value.Race} Hair Colour: ${value["Hair color"]}
-                                Height: ${value.Height} Publisher: ${value.Publisher} Skin Colour: ${value["Skin color"]}
-                                Alignment: ${value.Alignment} Weight: ${value.Weight} Power: ${value.Powers}` 
+                                p.textContent = 
+                                `id: ${value.id} 
+                                name: ${value.name} 
+                                Gender: ${value.Gender} 
+                                Eye color: ${value["Eye color"]} 
+                                Race: ${value.Race} 
+                                Hair Colour: ${value["Hair color"]}
+                                Height: ${value.Height} 
+                                Publisher: ${value.Publisher} 
+                                Skin Colour: ${value["Skin color"]}
+                                Alignment: ${value.Alignment} 
+                                Weight: ${value.Weight} 
+                                Power: ${value.Powers}` 
                                 divL.appendChild(p);
                             }
                         }
@@ -411,11 +403,6 @@ function findAList() {
 }
 
 function sort() {
-    // var resultBody = document.getElementById("result");
-
-    // for(const childE of resultBody.children){
-    //     console.log(childE)
-    // }
     var type = String(document.getElementById("how-sort").value);
     var resultBody = document.getElementById("result");
     const sortedContainer = document.getElementById("sorted-results");
@@ -445,7 +432,8 @@ function sort() {
   
         }
         if(type.toLowerCase() == "publisher"){
-            let elements = Array.from(resultBody.getElementsByTagName("li"));
+            let elements = Array.from(resultBody.getElementsByClassName("publishers"));
+            console.log(elements)
 
             elements.sort((a, b) => a.textContent.toLowerCase().localeCompare(b.textContent.toLowerCase()));
             sortedContainer.innerHTML = "";

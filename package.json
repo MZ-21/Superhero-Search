@@ -1,5 +1,5 @@
 {
-  "name": "se3316-lab3-mzekria2",
+  "name": "se3316-lab4-mzekria2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,16 +9,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mzekria2/se3316-lab3-mzekria2.git"
+    "url": "git+https://github.com/mzekria2/se3316-lab4-mzekria2.git"
   },
   "author": "\"Mijgon Zekria\"",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mzekria2/se3316-lab3-mzekria2/issues"
+    "url": "https://github.com/mzekria2/se3316-lab4-mzekria2/issues"
   },
-  "homepage": "https://github.com/mzekria2/se3316-lab3-mzekria2#readme",
+  "homepage": "https://github.com/mzekria2/se3316-lab4-mzekria2#readme",
   "dependencies": {
     "express": "^4.18.2",
+    "firebase": "^10.6.0",
     "lowdb": "^6.1.1",
     "mongoose": "^8.0.0"
   },

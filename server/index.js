@@ -15,12 +15,13 @@ const db = mongoose.connection;
     db.once('open', ()=> console.log("Connected"))
 
 
-const HeroList = require("../models/model");
+//importing HeroList schema
+const {HeroList} = require("../models/model");
+const {User} =  require("../models/model");
 
 const port = 5000;
 const router = express.Router(); //route object
-
-const router2 = express.Router();
+const routerUser = express.Router(); //route object
 
 //defining path
 const joinedPath = path.join(__dirname, '../client');
@@ -38,8 +39,8 @@ app.get('/',(req,res)=>{
 });
 
 //reading from json 
-const filePathToInfo = "superheroes/superhero_info.json";
-const filePathPowers = "superheroes/superhero_powers.json";
+const filePathToInfo = "server/superheroes/superhero_info.json";
+const filePathPowers = "server/superheroes/superhero_powers.json";
 
 
 function isAlphabetical(input) {
@@ -61,7 +62,6 @@ router.route('/limit/:number?/:pattern/:name')
         var namePattern = req.params.name;
         if(isInteger(limit) && isAlphabetical(pattern) && isAlphabetical(namePattern)){
             fs.readFile(filePathToInfo, 'utf-8', (err,data2)=>{
-                //console.log("hii")
                 if(err){
                     console.log(err);
                 }
@@ -261,9 +261,6 @@ router.route("/heroes/list/create")
         if(isAlphabetical(req.body.listN)){
             try {
                 let list = await HeroList.findOne({listN: req.body.listN}); //finding list
-                // // Check if req.body.superheroes is an array and doesnt have elements
-                // if(Array.isArray(req.body.superhero) && req.body.superhero.some(superhero => superhero.id === "")){
-                // If the list exists, not good bc creating a new list
                 if (list) {
                     return res.status(400).send("This list exists, choose a new name!");
                 }
@@ -271,6 +268,8 @@ router.route("/heroes/list/create")
                     // If the list doesn't exist, create it and add the superheroes
                     list = new HeroList({
                     listN: req.body.listN,
+                    createdBy: req.body.createdBy,//who created the list
+                    isPrivate: req.body.isPrivate,
                     superhero: [] // Assuming superheroes is an array of superhero objects
                     });
                 }
@@ -279,7 +278,8 @@ router.route("/heroes/list/create")
             } catch (err) {
                 res.status(400).send(`Bad request ${err}`)
             }
-        }{
+        }
+        else{
             res.status(400).send("Invalid list name. It must contain alphabetical characters only.");
         }
     });
@@ -421,10 +421,100 @@ router.route('/list/delete')
         } 
 });
 
+////////////////////////////////////////////////////USER///////////////////////////////////////////////////
+routerUser.route('/user/create')//router to add a user
+    .post(async (req, res) => {//creating an empty list
+        if(isAlphabetical(req.body.username)){
+            try {
+                console.log("hi")
+                let user = await User.findOne({username: req.body.username}); //finding list
+                console.log(user);
+                if (user) {
+                    return res.status(400).send("This username exists, choose a new name!");
+                }
+                else if(req.body.username) {
+                    console.log("in")
+                    //If the user doesn't exist, create it and add 
+                    user = new User({
+                    username: req.body.username,
+                    email: req.body.email,
+                    password: req.body.password
+                    });
+                }
+                const savedUser = await user.save();
+                res.status(201).json(savedUser);    
+            } catch (err) {
+                res.status(400).send(`Bad request ${err}`)
+            }
+        }
+        else{
+           res.status(400).send("Invalid username. It must contain alphabetical characters only.");
+        }
+    })
+    .get(async (req, res) => {//getting all the users created
+        try {
+            let user = await User.find({}, 'username email password isAdmin');
+            if(user.length > 0){
+                res.json(user)
+            }
+            else{
+                res.status(404).send('No user found');
+            }
+        } catch (error) {
+            res.status(500).send("Internal Server Error");
+        }
+    });
+
+
+routerUser.route('/user/delete')//router to add a user
+    .delete(async (req, res) => {
+        if(isAlphabetical(req.body.username)){
+            try {
+                let user = await User.deleteOne({ username: req.body.username });
+                if(user.deletedCount === 1){
+                    // List deleted successfully
+                    res.send(user)
+                }
+                else {
+                    res.status(404).send("user not found!");
+                }
+            } catch (err) {
+                res.status(400).send(`Bad request please check the format of the user  ${err}`)
+            }
+        }    
+    });
+routerUser.route('/user/changePass')//router to change a user's password
+    .post(async (req, res) => {
+        if(isAlphabetical(req.body.username)){
+            try {
+                let user = await User.findOne({username: req.body.username}); //finding list
+                if (user) {
+                    //If the user exist, change pass
+                    user.password = req.body.password //changing old password to new password
+                }
+                else{//return error if the user doesnt exist
+                    return res.status(400).send("This username doesn't exist, choose a new name!");
+                }
+                const savedUser = await user.save();
+                res.status(201).json(savedUser);    
+            } catch (err) {
+                res.status(400).send(`Bad request ${err}`)
+            }
+        }
+        else{
+           res.status(400).send("Invalid username. It must contain alphabetical characters only.");
+        }
+    })
+
+
+
+
 
 //installing the router
 app.use('/api/superheroes',router);
-app.use('/db/heroes',router2)
+//installing router for users
+app.use('/api/users',routerUser);
+
 
 //application should be listening for incoming msgs on this port
 app.listen(port,()=>{

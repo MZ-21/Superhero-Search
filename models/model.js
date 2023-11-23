@@ -1,10 +1,39 @@
 const mongoose = require('mongoose');
 
+const userSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false,
+      },
+});
 
 const heroSchema = new mongoose.Schema({
    listN:{
         type: String,
         required: true
+    },
+    createdBy: {
+        type: String,
+        default:"Admin",
+        required: true
+    },
+    isPrivate: {
+        type: Boolean,
+        default: true,
     },
     superhero:[
         {
@@ -23,4 +52,7 @@ const heroSchema = new mongoose.Schema({
         }
    ]
 })
-module.exports = mongoose.model('HeroList', heroSchema);
+const User = mongoose.model('User',userSchema)
+const HeroList= mongoose.model('HeroList', heroSchema)
+
+module.exports = {HeroList, User}
