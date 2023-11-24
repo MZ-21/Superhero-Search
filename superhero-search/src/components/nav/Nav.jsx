@@ -4,26 +4,32 @@ import { GiFlyingDagger } from "react-icons/gi";
 
 import { useState } from 'react'
 const Nav = () => {
-  const [activeNav,setActiveNav] = useState('#');
+  // const [activeNav,setActiveNav] = useState('#');
   return (
-    <div class="nav-container">
-        <nav class="nav">
-            <div class="brand">
-                <div class="rocket-image-container">
-                  <GiFlyingDagger class="rocket-image"/>
+    <div className="nav-container">
+        <nav className="nav">
+            <div className="brand">
+                <div className="rocket-image-container">
+                  <GiFlyingDagger className="rocket-image"/>
                 </div>
-                <div class="title-website">
+                <div className="title-website">
                   <h2>Superhero Search</h2>
                 </div>
             </div>
-            <div class="home-link-container">
-              <a class="home-link" href='#home' onClick={()=>setActiveNav('#')} className={activeNav ==='#' ? 'active' :''} >Home</a>
+            <div className="home-link-container">
+              <a className="home-link" href='#home' >Home</a>
+              {/* onClick={()=>setActiveNav('#')} */}
+              {/* className={activeNav ==='#' ? 'active' :''} */}
             </div>
-            <div class="about-link-container">
-              <a class="about-link" href='#about' onClick={()=>setActiveNav('#about')} className={activeNav ==='#about' ? 'active' :''}>About</a>
+            <div className="about-link-container">
+              <a className="about-link" href='#about'  >About</a>
+              {/* onClick={()=>setActiveNav('#about')} */}
+              {/* className={activeNav ==='#about' ? 'active' :''} */}
             </div>
-            <div class="login-link-container">
-              <a class="login-link" href="#login" onClick={()=>setActiveNav('#login')} className={activeNav ==='#login' ? 'active' :''}>Log-in</a>
+            <div className="login-link-container">
+              <a className="login-link" href="#login"  >Log-in</a>
+              {/* onClick={()=>setActiveNav('#login')} */}
+              {/* className={activeNav ==='#login' ? 'active' :''} */}
             </div>
         </nav>
 
