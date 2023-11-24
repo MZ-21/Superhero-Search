@@ -1,0 +1,10 @@
+.login-input-container{
+    display: block;
+    margin: auto auto;
+    width: 300px;
+}
+.input-identifier {
+    display: inline-block;
+    font-weight: bold;
+    margin-right: 5px;
+}

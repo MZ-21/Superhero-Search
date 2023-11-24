@@ -1,0 +1,23 @@
+.about-words {
+    text-wrap: wrap;
+    width: 400px;
+    display: block;
+    margin: auto auto;
+    font-size: larger;
+    background-color: rgb(97, 97, 194);
+    padding: 10px;
+    padding-left: 15px;
+    color: whitesmoke;
+}
+.header {
+    display: block;
+    margin-left: 80px;
+    margin-top: 10px;
+}
+.container {
+    display: block;
+    margin: auto auto;
+    background-color: rgb(232, 227, 227);
+    width: 80vw;
+    height: 50vh;
+}
