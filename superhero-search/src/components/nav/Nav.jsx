@@ -3,7 +3,7 @@ import './Nav.css'
 import { GiFlyingDagger } from "react-icons/gi";
 
 import { useState } from 'react'
-const Nav = () => {
+const Nav = ({onLoginClick,onCreateAccountClick}) => {
   // const [activeNav,setActiveNav] = useState('#');
   return (
     <div className="nav-container">
@@ -16,18 +16,18 @@ const Nav = () => {
                   <h2>Superhero Search</h2>
                 </div>
             </div>
-            <div className="home-link-container">
-              <a className="home-link" href='#home' >Home</a>
-              {/* onClick={()=>setActiveNav('#')} */}
-              {/* className={activeNav ==='#' ? 'active' :''} */}
-            </div>
             <div className="about-link-container">
               <a className="about-link" href='#about'  >About</a>
               {/* onClick={()=>setActiveNav('#about')} */}
               {/* className={activeNav ==='#about' ? 'active' :''} */}
             </div>
+            <div className="home-link-container">
+              <a className="home-link" href='#create' onClick={onCreateAccountClick} >Create Account</a>
+              {/* onClick={()=>setActiveNav('#')} */}
+              {/* className={activeNav ==='#' ? 'active' :''} */}
+            </div>
             <div className="login-link-container">
-              <a className="login-link" href="#login"  >Log-in</a>
+              <a className="login-link" href="#login" onClick={onLoginClick} >Log-in</a>
               {/* onClick={()=>setActiveNav('#login')} */}
               {/* className={activeNav ==='#login' ? 'active' :''} */}
             </div>

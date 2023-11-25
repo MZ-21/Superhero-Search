@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import './login.css';
 import {useState, useRef } from 'react';
+import Nav from '../nav/Nav.jsx';
+import CreateAccount from '../CreateAccount/CR.jsx';
 import UserInfo from '../UserInfo/UserInfo';
 const routerPath = "/api/superheroes";
 const routerPath2 = "/api/users";
@@ -58,8 +60,8 @@ function Login (){
                     <div className="login-header header">
                         <h1>Login:</h1>
                     </div>
-                    <div className="login-input-container">
-                        <div className="username-input">
+                    <div className="login-input-container input-container">
+                        <div className="email-input">
                             <p className="input-identifier">Email:</p>
                             <input className="input" type='text' value={email} onChange={(e) => setEmail(e.target.value)} placeholder='email'></input>
                         </div>
@@ -68,7 +70,7 @@ function Login (){
                             <input className="input" type='text' value={password} onChange={(e)=> setPassword(e.target.value)} placeholder='password'></input>
                         </div>
                     </div>
-                    <button onClick={authenticate}>Log in</button>
+                    <button class="btn" onClick={authenticate}>Log in</button>
                 </div>
             )}
         </login>
@@ -77,3 +79,14 @@ function Login (){
 
 export default Login;
 
+
+
+// function ComponentA({ sharedState, setSharedState }) {
+//   // Use sharedState and setSharedState as needed
+//   return <div>{sharedState}</div>;
+// }
+
+// function ComponentB({ sharedState, setSharedState }) {
+//   // Use sharedState and setSharedState as needed
+//   return <input value={sharedState} onChange={(e) => setSharedState(e.target.value)} />;
+// }

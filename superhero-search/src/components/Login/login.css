@@ -1,4 +1,4 @@
-.login-input-container{
+.input-container{
     display: block;
     margin: auto auto;
     width: 300px;
@@ -10,4 +10,7 @@
 }
 .welcome-sign{
     margin-left: 65px;
+}
+.container {
+    margin-bottom: 20px;
 }

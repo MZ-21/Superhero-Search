@@ -79,6 +79,24 @@ routerUser.route('/user/find/:enteredEmail/:enteredPass')   //displays all lists
         }
     })
 
+    
+routerUser.route('/user/find/:enteredEmail')   //displays all lists
+.get(async (req, res) => {
+    try {
+        const eE = req.params.enteredEmail;
+        let emailCheck = await User.findOne({email: eE}); //finding user
+        if(emailCheck){
+            console.log("email found")
+            res.status(false);
+        }
+        else{
+            res.send(true)
+        }
+    } catch (error) {
+        res.status(500).send("Internal Server Error");
+    }
+})
+
 
     routerUser.route('/user/create')//router to add a user
     .post(async (req, res) => {//creating an empty list
