@@ -1,0 +1,35 @@
+<!-- code copied from  https://www.youtube.com/watch?v=FhqWF5veVGo&list=PLk8gdrb2DmCi-9ys7sVZvKNQISs5Bkw-t&index=6 tutorial on email verification-->
+<!-- the whole code was copied but edited, it was used for generating a verification page when the user clicks a link -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verified</title>
+</head>
+<body>
+  <script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const error = urlParams.get("error");
+    const message = urlParams.get("message");
+
+    const body = document.body;
+    body.innerHTML = error
+      ? `
+        <div class="error">
+          <h2>${message}</h2>
+          <p>Please try again!</p>
+        </div>
+      `
+      : `
+        <div>
+          <h2>Email has been verified</h2>
+          <p>You can now log in</p>
+        </div>
+      `;
+  </script>
+  
+</body>
+</html>

@@ -13,35 +13,45 @@ function CreateAccount (){
     const [username,setUsername] = useState('');
     const [password, setPassword] = useState(''); //update state password if need
     const isMounted = useRef(true);
-    const [invalid, setInvalid] = useState(false);
+    const [invalid, setInvalid] = useState('');
   
 
     useEffect(() => {
         // Reset the incorrectEmail state when the email changes
-        setInvalid(false);
+        setInvalid('');
       }, [email]); 
 
     const authenticate = () => {
-        checkEmailExist(email);
+        checkEmail();
 
     }
 
-    const checkEmailExist = (enteredEmail) => {
-        console.log(enteredEmail)
-        fetch(`${routerPath2}/user/find/${enteredEmail}`)
-            .then(res => res.json()
-            .then(data => {
-                if(data===true){
-                    setInvalid(true);
+    const checkEmail = () => {
+                    var requestBody = {
+                        "username": `${username}`,
+                        "email":`${email}`,
+                        "password":`${password}`,
+                    }
+                    fetch(`${routerPath2}/user/create`,{
+                        method: 'POST', 
+                        headers: {
+                        'Content-Type': 'application/json', // Set the content type to JSON
+                        },
+                        body: JSON.stringify(requestBody), // Convert the object to a JSON string
+                    })
+                    .then(res => res.json()
+                    .then(data2 => {
+                        //handle verification
+                    
+
+                    })
+                    .catch((error) => {
+                        setInvalid("invalid email")
+                        console.log(error);
+                    })
+                    )
                 }
-                else{
-                }
-            })
-            )
-            .catch((err)=>{
-                console.log("h"+err)
-            })
-    }
+    
     return (
             <div className="container">
                     <div className="login-header header">
@@ -54,16 +64,16 @@ function CreateAccount (){
                         </div>
                         <div className="username-input">
                             <p className="input-identifier">Username:</p>
-                            <input className="input" type='text'placeholder='username'></input>
+                            <input className="input" type='text'placeholder='username' onChange={(e) => setUsername(e.target.value)}></input>
                         </div>
                         <div className="password-input">
                             <p className="input-identifier">Password:</p>
-                            <input className="input" type='text' placeholder='password'></input>
+                            <input className="input" type='text' placeholder='password' onChange={(e) => setPassword(e.target.value)}></input>
                         </div>
                     
                         <button className='btn' onClick={authenticate}>Create</button>
-                        {invalid && (
-                            <p id='invalid'>Incorrect Email</p>
+                        {(invalid==='' || invalid==="invalid email") && (
+                            <p id='invalid'>{invalid}</p>
                         )}
                     </div>
             </div>

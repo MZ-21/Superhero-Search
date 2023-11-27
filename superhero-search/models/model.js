@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
-        unique: true,
+        unique: false,
     },
     email: {
         type: String,
@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
       },
+      verified: {
+        type: Boolean,
+        default: false,
+      }
 });
 
 const heroSchema = new mongoose.Schema({

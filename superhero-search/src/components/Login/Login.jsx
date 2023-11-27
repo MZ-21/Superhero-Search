@@ -29,13 +29,24 @@ function Login (){
 
     }
     const checkCredentials = (enteredEmail, enteredPassword) => {
-        fetch(`${routerPath2}/user/find/${enteredEmail}/${enteredPassword}`)
+        var requestBody = {
+            "email":`${enteredEmail}`,
+            "password":`${enteredPassword}`
+        }
+        fetch(`${routerPath2}/user/find`,{
+            method: 'POST', 
+            headers: {
+            'Content-Type': 'application/json', // Set the content type to JSON
+            },
+            body: JSON.stringify(requestBody), // Convert the object to a JSON string
+        })
             .then(res => res.json()
             .then(data => {
-                if(data.email == enteredEmail && isMounted.current){
-                  setUsername(data.username)
-                  setLoggedIn(true)
-                }
+                console.log(data)
+                // if(data.email == enteredEmail && isMounted.current){
+                  //setUsername(data.username)
+                setLoggedIn(true)
+                
                 console.log("not ing if")
            
             })

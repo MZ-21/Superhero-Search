@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 const routerPath = "/api/superheroes";
 const routerPath2 = "/api/users";
