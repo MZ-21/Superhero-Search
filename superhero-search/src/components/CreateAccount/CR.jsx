@@ -14,6 +14,7 @@ function CreateAccount (){
     const [password, setPassword] = useState(''); //update state password if need
     const isMounted = useRef(true);
     const [invalid, setInvalid] = useState('');
+    const [msg, setMsg] = useState('');
   
 
     useEffect(() => {
@@ -42,17 +43,24 @@ function CreateAccount (){
                     .then(res => res.json()
                     .then(data2 => {
                         //handle verification
+                        console.log(data2)
+                        for(let dataV in data2){
+                            console.log(dataV)
+                            if(dataV == "message"){
+                                setInvalid(data2[dataV])
+                            }
+                        }
                     
 
                     })
                     .catch((error) => {
-                        setInvalid("invalid email")
                         console.log(error);
                     })
                     )
                 }
     
     return (
+        <div id="cr">
             <div className="container">
                     <div className="login-header header">
                         <h1>Create Account:</h1>
@@ -72,11 +80,12 @@ function CreateAccount (){
                         </div>
                     
                         <button className='btn' onClick={authenticate}>Create</button>
-                        {(invalid==='' || invalid==="invalid email") && (
+                        {(invalid!=='') && (
                             <p id='invalid'>{invalid}</p>
                         )}
                     </div>
             </div>
+        </div>
     );
 };
 

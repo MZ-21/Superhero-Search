@@ -3,7 +3,7 @@ require('dotenv').config()
 const express = require('express'); //importing module from dependencies using require
 const app = express();//used to configure server
 const path = require('path'); //path module to manipulate file paths
-const fs = require('fs'); //module for files
+const fs = require('fs/promises'); //module for files
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
@@ -24,59 +24,7 @@ mongoose.connect(dbURL, {
 const db = mongoose.connection;
     db.on('error',(error)=> {console.error(error)})
     db.once('open', ()=> console.log("Connected"))
-//     const collection = db.collection(User.collection.name)
 
-//     collection.indexes(function (err,indexes){
-//         if(err){
-//             console.error(err);
-//         }
-//         else {
-//             console.log(indexes)
-//         }
-//     })
-//     collection.dropIndex('username_1', function (err, result) {
-//         if (err) {
-//           console.error(err);
-//         } else {
-//           console.log(result);
-//         }
-//         // Close the Mongoose connection
-//   mongoose.connection.close();
-// });
-
-//configuring options 
-// nev.configure({
-//     verificationURL: `http://localhost:3000/api/users/email-verification/${URL}`,
-//     URLLength: 48,
-//     persistentUserModel: User,
-//     tempUserModel: nev.generateTempUserModel(User),
-//     tempUserCollection: 'temporary_users',
-//     emailFieldName: 'email',
-//     passwordFieldName: 'password',
-//     URLFieldName: 'GENERATED_VERIFYING_URL',
-//     expirationTime: 86400,
-//     transportOptions: {
-//         service: 'Gmail',
-//         auth: {
-//             user: process.env.VERIFICATION_EMAIL,
-//             pass: process.env.VERIFICATION_EMAIL_PASSWORD,
-//         }
-//     },
-//     verifyMailOptions: {
-//         from: `Do Not Reply <do_not_reply@gmail.com>`,
-//         subject: 'Please confirm account',
-//         html: `Click the following link to confirm your account:</p><p>${URL}</p>`,
-//         text: `Please confirm your account by clicking the following link: ${URL}`
-//     }
-// }, function(error, options){
-//     if(error){
-//         console.log('tempUserCollection:', options.tempUserCollection);
-
-//         console.log(error +" errrr")
-//         return callback(null,null);
-//     }
-//     console.log('configured' + (typeof options === 'object'))
-// });
 
 const port = process.env.PORT || 5000;
 const router = express.Router(); //route object
@@ -103,8 +51,8 @@ app.use(express.json()); //no longer need json.parse in each req
 // });
 
 //reading from json 
-const filePathToInfo = "server/superheroes/superhero_info.json";
-const filePathPowers = "server/superheroes/superhero_powers.json";
+const filePathToInfo = "superheroes/superhero_info.json";
+const filePathPowers = "superheroes/superhero_powers.json";
 
 function isAlphabetical(input) {
     const regex = /^[a-zA-Z ]*$/;
@@ -122,7 +70,8 @@ const nodemailer = require('nodemailer');
 
 //unique string
 const {v4: uuidv4} = require('uuid');//need uuid v4
-const { resourceUsage } = require('process');
+const { log } = require('console');
+//const { resourceUsage } = require('process');
 
 //nodemailer
 let transporter = nodemailer.createTransport({
@@ -144,11 +93,13 @@ transporter.verify((err,success)=>{
 
 
 //verification email
-const sendVerificationEmail = ({_id, email},res) =>{
+const sendVerificationEmail = ({_id, email},res) => {
     //url to be used in the email
     const currentUrl = "http://localhost:5000/";
-    const uniqueString = uuidv4() + _id;
-
+    let uniqueString = uuidv4() + _id;
+    console.log(uniqueString)
+    console.log(email)
+    console.log(_id)
     //mail
     const mailOptions = {
         from: process.env.VERIFICATION_EMAIL,
@@ -158,7 +109,7 @@ const sendVerificationEmail = ({_id, email},res) =>{
         ${currentUrl + "user/verify/" + _id + "/" + uniqueString
         }>here</a>to proceed</p>`,
     }
-    console.log(currentUrl)
+    
     //hash the uniqueString
     const saltRounds = 10;
     bcrypt
@@ -171,6 +122,8 @@ const sendVerificationEmail = ({_id, email},res) =>{
             createdAt: Date.now(),
             expiresAt: Date.now() + 21600000, //expires 6 hours from now
         })
+        console.log(_id, hashedString)
+        console.log(newVerification)
         newVerification
         .save()
         .then(()=>{
@@ -186,7 +139,7 @@ const sendVerificationEmail = ({_id, email},res) =>{
             .catch((error)=>{
                 console.log(error)
                 res.json({
-                    status: "FAILED",
+                    status: "Failed!",
                     message: "Verification email failed!"
                 })
             })
@@ -194,7 +147,7 @@ const sendVerificationEmail = ({_id, email},res) =>{
         .catch((err)=>{
             console.log(err)
             res.json({
-                status: "FAILED",
+                status: "Failed!",
                 message: "Error while saving verification data!"
             })
         })
@@ -202,7 +155,7 @@ const sendVerificationEmail = ({_id, email},res) =>{
     .catch((error)=>{
         console.log(error)
         res.json({
-            status: "FAILED",
+            status: "Failed!",
             message: "Error while hashing email!"
         })
     })
@@ -212,13 +165,19 @@ const sendVerificationEmail = ({_id, email},res) =>{
 
 function authenticateToken(req,res,next){
     //header
+    console.log("called authenticate token")
     const authHeader = req.headers['authorization'];//getting token which is in headers
+    console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1];//if have authHeader, get token
     if(token == null){
         return res.sendStatus(401);//Web Dev Simplified JWT Authentication
     }
+    console.log(token)
+    console.log(process.env.ACCESS_TOKEN_SECRET + "SECRET")
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,user)=>{
-        if(err) return res.sendStatus(403);
+        if(err) {
+            console.log(err + "here is the error from")
+            return res.sendStatus(403)};
         req.user = user
         next()
     })
@@ -233,14 +192,17 @@ routerUser.route('/user/find')
 
         if(email == "" || password == ""){
             res.json({
-                status: "FAILED",
+                status: "Failed!",
                 message: "Fields are empty!"
             });
         }
         else {
-            User.find({email})
+            User.find({ email })
             .then(data =>{
-                if(data.length){
+                console.log("For some reason, email found")
+                
+                if(data){
+                    console.log("data has a length")
                     //check if user is verified
                     if(!data[0].verified){
                         res.json({
@@ -253,14 +215,18 @@ routerUser.route('/user/find')
                         .compare(password, hashedPassword)
                         .then(reslt =>{
                             if(reslt){
-                                // //jwt
-                                // const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
-                                // res.send({accessToken: accessToken})
-
+                                //jwt
+                                console.log("jwt email error")
+                                const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' })
+                                
+                                console.log(accessToken)
+                                //res.send({accessToken: accessToken})
+                                
                                 res.json({
+                                        accessToken: accessToken,
                                         status: "SUCCESS!",
                                         message: "Login success",
-                                        data:data,
+                                        data: data,
                                 })
                             }else{
                                 res.json({
@@ -273,42 +239,81 @@ routerUser.route('/user/find')
                     }
                 }
             })
+            .catch((err) => {
+                console.log(err +"email not")
+
+                res.json({
+                    status: "Failed!",
+                    message: "Invalid Email!",
+                })
+
+            })
         }
-        // try {
-        //     const eE = req.body.email;
-        //     const eP = req.body.password;
-        //     console.log("hh")
-        //     let userEmailCheck = await User.findOne({email: eE}); //finding user
-        //     if(userEmailCheck){
-        //        let userPassCheck = await User.findOne({password: eP});
-        //        if(userPassCheck){
 
-        //             //check if user is verified
-        //             if(!userPassCheck.verified){
-        //                 return res.json({
-        //                     status: "Failed!",
-        //                     message: "Email has not been verified!",
-        //                 })
-
-        //             }
-        //             //res.send(userPassCheck)
-        //             const user = {email: userPassCheck.email}
-        //             //jwt
-        //             const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
-        //             res.send({accessToken: accessToken})
-        //        }
-        //        else {
-        //         res.status(404).send("pass not found!")
-        //        }
-        //     }
-        //     else{
-        //         res.status(404).send("email not found!")
-        //     }
-        // } catch (error) {
-        //     res.status(500).send("Internal Server Error" + error);
-        // }
     })
-/******************************Lists******************88*/
+/******************************Lists*********************/
+
+router.route('/heroes')
+    .get(async (req,res)=>{
+
+        try{
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+           // console.log(dataSuperheroes)
+
+            for(let hero of superheroes){
+                try{
+                    const powers = await readPowersFile(hero);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    hero.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    // console.log(`hero: ${hero.id}, ${hero.name}`, `powers: ${hero.powers}`)
+                    // console.log("----------------------------------")
+                    newSuperHeroes.push(hero);
+                //    console.log(newSuperHeroes,"new superheroes")
+                //    console.log(powersInfo.powers)
+                }
+                catch(err){
+                    console.log(err + "error due to powers file");
+                } 
+                //console.log(newSuperHeroes +"new hero")  
+            }
+            res.json(newSuperHeroes);
+        } 
+        catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+
+
+    async function readPowersFile(hero){//function to read from power file
+           try{ 
+                    const file = await fs.readFile(filePathPowers, 'utf-8');
+                    var parsedPowerData = JSON.parse(file);
+                    var powerFound = '';
+                    for (let power of parsedPowerData) {
+                        if (String(hero.name).toLowerCase() === String(power.hero_names).toLowerCase()) {
+                           // console.log(hero.name, power.hero_names)
+                            powerFound = power;
+                        }
+                     
+                    
+                    }
+                
+                    return powerFound;
+            }
+            catch(err){
+                console.log(err + "while reading powers file")
+                throw err;
+            }
+
+        
+    }
     router.route('/publisher')
     .get((req,res)=>{
         fs.readFile(filePathToInfo, 'utf-8', (err,heroData)=>{
@@ -414,69 +419,76 @@ routerUser.route('/user/find')
                 username.trim();
                 email.trim();
                 password.trim();
-
+                
                 if(username == "" || email == "" || password == ""){
                     res.json({
-                        status: "FAILED",
+                        status: "Failed!",
                         message: "Empty input fields!"
                     })
                 }
                 else if(!/^[a-zA-Z ]*$/.test(username)){
                     res.json({
-                        status: "FAILED",
+                        status: "Failed!",
                         message: "Invalid name entered!"
                     })
                 }
                 else if(!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)){
                     res.json({
-                        status: "FAILED",
+                        status: "Failed!",
                         message: "Invalid email entered!"
                     })
                 }
 
                 else {
-                    User.find({email}).then(result => {
-                        if(res.length){
+                    User.find({email})
+                    .then(result => {
+                        console.log(result)
+                        if(result.length){
                             res.json({
-                                status: "FAILED",
+                                status: "Failed!",
                                 message: "User exists!"
                             })
                         }
                         else {
                             //creating new user
-
                             //password hashing
                             const saltRounds = 10
-                            bcrypt.hash(password, saltRounds).then(hashP => {
+                            console.log(password)
+                            bcrypt.hash(password, saltRounds).then((hashP) => {
                                const user = new User({//creating user using chema
                                                     username,
                                                     email,
                                                     password: hashP,
                                                     verified: false,
                                                     });
-                                user.save().then(result =>{//saving user
+                                console.log(user)
+                                user.save().then((result) =>{//saving user
                                     //handle account verification
+                                    console.log(result)
                                     sendVerificationEmail(result, res);
                                 })
                                 .catch(err => {
+                                    console.log(err)
                                     res.json({
-                                        status: "FAILED",
+                                        status: "Failed!",
                                         message: "User creation failed!"
                                     })
                                 })//error msg
                             })
                             .catch(error => {
+                                console.log(error)
                                 res.json({
-                                    status: "FAILED",
+                                    status: "Failed!",
                                     message: "An error occured while hashing password!"
                                 })
                             })
                         }
 
-                    }).catch(err => {
+                    })
+                    .catch(err => {
                         console.log(err);
                         res.json({
-                            status: "FAILED",
+                            status: "Failed!",
                             message: "An error occurred while checking for existing user!"
                         })
                     })
@@ -560,10 +572,12 @@ routerUser.route('/user/find')
                             .compare(uniqueString, hashedString)//comparing the string in the url to the hashedstring to see if it was the previously hashedstring
                             .then(function(result){
                                 if(result){//ifstrings match
+                                    console.log(userId +" user userid")
                                     //updating user record to verified = true
                                     User.updateOne({_id: userId}, {verified: true})
                                     .then(()=>{
-                                        tempUser.deleteOne({_id: userId}, {verified: true})//deleting the temporary user since theyre verified
+                                        console.log(userId +" tempuser userid")
+                                        tempUser.deleteOne({userId})//deleting the temporary user since theyre verified
                                         .then(()=>{
                                             res.sendFile(path.join(__dirname,"/views/verified.html"));
                                         })

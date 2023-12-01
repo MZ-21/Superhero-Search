@@ -1,0 +1,24 @@
+#superhero-div-id{
+    width: fit-content;
+    height: fit-content;
+}
+.hero-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+
+}
+.label-heroes{
+    background-color: rgb(243, 224, 244);
+    border: 1px solid black;
+    padding: 10px;
+}
+.hero-content-container {
+    background-color: rgb(243, 224, 244);
+}
+.hero-attribute {
+    margin: 0px;
+    font-size: smaller;
+}
+.hero-div {
+    width: fit-content;
+}

@@ -1,19 +1,18 @@
+
 import React, { useEffect } from 'react';
 import './login.css';
 import {useState, useRef } from 'react';
-import Nav from '../nav/Nav.jsx';
-import CreateAccount from '../CreateAccount/CR.jsx';
-import UserInfo from '../UserInfo/UserInfo';
 const routerPath = "/api/superheroes";
 const routerPath2 = "/api/users";
 
 function Login (){
+    console.log("hi")
     const [email, setEmail] = useState(''); //update username
     const [username,setUsername] = useState('');
     const [password, setPassword] = useState(''); //update state password if need
     const isMounted = useRef(true);
-    const [loggedIn, setLoggedIn] = useState(false) //currently not logged in
-  
+    const [loggedIn, setLoggedIn] = useState('') //currently not logged in
+    const [msg, setMsg] = useState('')
     useEffect(() => {
         isMounted.current = true;
     
@@ -29,6 +28,7 @@ function Login (){
 
     }
     const checkCredentials = (enteredEmail, enteredPassword) => {
+        //const storedValue = localStorage.getItem(enteredEmail);
         var requestBody = {
             "email":`${enteredEmail}`,
             "password":`${enteredPassword}`
@@ -42,27 +42,43 @@ function Login (){
         })
             .then(res => res.json()
             .then(data => {
-                console.log(data)
-                // if(data.email == enteredEmail && isMounted.current){
-                  //setUsername(data.username)
-                setLoggedIn(true)
-                
-                console.log("not ing if")
-           
+                for(let dataValues in data){
+                    if(dataValues == "data"){
+                        setUsername(data[dataValues][0].username)
+                        
+                    }
+                    if(dataValues=="accessToken"){
+                        var dataJWT = data[dataValues];
+                    }
+                    if(data[dataValues] == "SUCCESS!"){
+                        // Storing in local storage
+                        console.log(dataJWT)
+                        localStorage.setItem("token",dataJWT);
+                        setLoggedIn('true')
+                        
+                    } 
+                    if(data[dataValues] == "Failed!"){
+                    //     console.log("FFFFFFFFFFFFFFFFFFFFFFFF")
+                        setLoggedIn('false')
+                    }
+                    if(dataValues=="message"){
+                        setMsg(data[dataValues])
+                    }
+                }
             })
             .catch((error) => {
-                
-            })
+                console.log(error + " error from login data retrievel")    
+                })
             )
             .catch((err)=>{
-                console.log("h"+err)
+                console.log(err)
             })
     }
 
 
     return (
-        <login id="login">
-            {loggedIn ? (
+        <div id="login">
+            {loggedIn == "true" ? (
                <div>
                 <h3 className="welcome-sign">Welcome: {username}</h3>
                </div>
@@ -81,10 +97,15 @@ function Login (){
                             <input className="input" type='text' value={password} onChange={(e)=> setPassword(e.target.value)} placeholder='password'></input>
                         </div>
                     </div>
-                    <button class="btn" onClick={authenticate}>Log in</button>
+                    <button className="btn" onClick={authenticate}>Log in</button>
+                    {loggedIn =="false" && (
+                        <div>
+                            <h3 className='welcome-sign'>{msg}</h3>
+                        </div>
+                    )}
                 </div>
             )}
-        </login>
+        </div>
     );
 };
 
