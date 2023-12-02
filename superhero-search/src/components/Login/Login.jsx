@@ -29,6 +29,7 @@ function Login (){
     }
     const checkCredentials = (enteredEmail, enteredPassword) => {
         //const storedValue = localStorage.getItem(enteredEmail);
+        // const jwtToken = localStorage.getItem('token')
         var requestBody = {
             "email":`${enteredEmail}`,
             "password":`${enteredPassword}`

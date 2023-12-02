@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './SH.css';
 import FindHeroClicked from './SHRender.jsx';
 const routerPath = "/api/superheroes";
@@ -6,36 +6,54 @@ const routerPath = "/api/superheroes";
 
 const SuperheroSearch = () => {
         const [heroes,setHeroes] = useState([]);
-        const [msg, setMsg] = useState('');
+        const [msg,setMsg] = useState([]);
+        const isMounted = useRef(true);
         const [expanded,setExpanded] = useState([])
+        const [name,setName] = useState('');
+        const [race,setRace] = useState('');
+        const [power,setPower] = useState('');
+        const [publisher,setPublisher] = useState('');
 
-        console.log("superhero search")
+    useEffect(()=>{//fetching data when mounted
+            isMounted.current = true;
+    
+            return () => {
+                 isMounted.current = false;
+            };
+         
+            
+    },[])
+    
+    const userSearch = () => {
+        displayAllHeroes(name,race,publisher,power);
+    }
 
-        useEffect(()=>{//fetching data when mounted
-            const displayAllHeroes = async ()=> {//method for displaying heroes
-                try{
-                    // const jwtToken = localStorage.getItem('token')
-                    const response = await fetch(`${routerPath}/heroes`)
-                    console.log(response)
-                    if(response.ok){
-                        const data = await response.json();
-                        // const heroesWithExpanded = data.map(hero => ({ ...hero, expanded: false }));
-                        setHeroes(data);
-                        console.log(data, "data called")
-                    }
-                    else{
-                        setMsg("Not Authorized");
-                        console.log(response.status + " Not Authorized to make this request!")
-                            
-                    }
+    const displayAllHeroes = async (enteredName, enteredRace, enteredPublisher, enteredPower)=> {//method for displaying heroes
+            try{
+                let urlA = ``;
+
+                if(enteredName!==''){urlA += `/name/${enteredName}`}
+                if(enteredRace!=='' ){urlA += `/race/${enteredRace}`}
+                if(enteredPublisher!==''){urlA += `/publisher/${enteredPublisher}`}
+                if(enteredPower!==''){urlA += `/power/${enteredPower}`}
+                console.log(urlA)
+                const response = await fetch(`${routerPath}/heroes/${urlA}`)
+                
+                if(response.ok){
+                    const data = await response.json();
+                    console.log(data)
+                    setHeroes(data);
                 }
-                catch(error) {
-                    console.log(error +" Network Error")
+                else{
+                    setMsg("Not Authorized");
+                    console.log(response.status + " Not Authorized to make this request!")
+                        
                 }
             }
-            displayAllHeroes();
-            
-        },[])
+            catch(error) {
+                console.log(error +" Network Error")
+            }
+    }     
 
     
   const toggleExtraInfo = (hero) => {
@@ -54,6 +72,13 @@ const SuperheroSearch = () => {
         <div id="superhero-div-id">
             <div className="">
                 <h1>Heroes:</h1>
+                <div className='search-bar'>
+                    <p className='label'>Name:</p><input id="name-input"className='input-field' value={name} onChange={(e)=> setName(e.target.value)} placeholder='hero name'></input>
+                    <p className='label'>Race:</p><input id="race-input" className='input-field' vale={race} onChange={(e)=>setRace(e.target.value)} placeholder='hero race'></input>
+                    <p className='label'>Publisher:</p><input id="publisher-input" className='input-field' value={publisher} onChange={(e)=>setPublisher(e.target.value)} placeholder='hero publisher'></input>
+                    <p className='label'>Power:</p><input id="power-input" className='input-field' value={power} onChange={(e)=>setPower(e.target.value)} placeholder='hero power'></input>
+                    <button id="search-btn" className='btn' onClick={userSearch}>Search</button>
+                </div>
                 <div className="hero-grid">
                     {heroes.map((hero, index)=>(
                         <div key={index} className='hero-div'>

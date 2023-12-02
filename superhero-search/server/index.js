@@ -1,5 +1,5 @@
+const Fuse = require('fuse.js')
 require('dotenv').config()
-
 const express = require('express'); //importing module from dependencies using require
 const app = express();//used to configure server
 const path = require('path'); //path module to manipulate file paths
@@ -251,46 +251,1023 @@ routerUser.route('/user/find')
         }
 
     })
-/******************************Lists*********************/
+/***************SEARCH**********************************/
+//Fuse.js 
+const options = {
+    keys: ['name','Race','Publisher'], //what to search by
+    threshold: 0.4,
+}
+ 
+// 
+const options2 = {
+    keys: ["hero_names","Agility","Accelerated Healing","Lantern Power Ring",
+    "Dimensional Awareness",
+    "Cold Resistance",
+    "Durability",
+    "Stealth",
+    "Energy Absorption",
+    "Flight",
+    "Danger Sense",
+    "Underwater breathing",
+    "Marksmanship",
+    "Weapons Master",
+    "Power Augmentation",
+    "Animal Attributes",
+    "Longevity",
+    "Intelligence",
+    "Super Strength",
+    "Cryokinesis",
+    "Telepathy",
+    "Energy Armor",
+    "Energy Blasts",
+    "Duplication",
+    "Size Changing",
+    "Density Control",
+    "Stamina",
+    "Astral Travel",
+    "Audio Control",
+    "Dexterity",
+    "Omnitrix",
+    "Super Speed",
+    "Possession",
+    "Animal Oriented Powers",
+    "Weapon-based Powers",
+    "Electrokinesis",
+    "Darkforce Manipulation",
+    "Death Touch",
+    "Teleportation",
+    "Enhanced Senses",
+    "Telekinesis",
+    "Energy Beams",
+    "Magic",
+    "Hyperkinesis",
+    "Jump",
+    "Clairvoyance",
+    "Dimensional Travel",
+    "Power Sense",
+    "Shapeshifting",
+    "Peak Human Condition",
+    "Immortality",
+    "Camouflage",
+    "Element Control",
+    "Phasing",
+    "Astral Projection",
+    "Electrical Transport",
+    "Fire Control",
+    "Projection",
+    "Summoning",
+    "Enhanced Memory",
+    "Reflexes",
+    "Invulnerability",
+    "Energy Constructs",
+    "Force Fields",
+    "Self-Sustenance",
+    "Anti-Gravity",
+    "Empathy",
+    "Power Nullifier",
+    "Radiation Control",
+    "Psionic Powers",
+    "Elasticity",
+    "Substance Secretion",
+    "Elemental Transmogrification",
+    "Technopath/Cyberpath",
+    "Photographic Reflexes",
+    "Seismic Power",
+    "Animation",
+    "Precognition",
+    "Mind Control",
+    "Fire Resistance",
+    "Power Absorption",
+    "Enhanced Hearing",
+    "Nova Force",
+    "Insanity",
+    "Hypnokinesis",
+    "Animal Control",
+    "Natural Armor",
+    "Intangibility",
+    "Enhanced Sight",
+    "Molecular Manipulation",
+    "Heat Generation",
+    "Adaptation",
+    "Gliding",
+    "Power Suit",
+    "Mind Blast",
+    "Probability Manipulation",
+    "Gravity Control",
+    "Regeneration",
+    "Light Control",
+    "Echolocation",
+    "Levitation",
+    "Toxin and Disease Control",
+    "Banish",
+    "Energy Manipulation",
+    "Heat Resistance",
+    "Natural Weapons",
+    "Time Travel",
+    "Enhanced Smell",
+    "Illusions",
+    "Thirstokinesis",
+    "Hair Manipulation",
+    "Illumination",
+    "Omnipotent",
+    "Cloaking",
+    "Changing Armor",
+    "Power Cosmic",
+    "Biokinesis",
+    "Water Control",
+    "Radiation Immunity",
+    "Vision - Telescopic",
+    "Toxin and Disease Resistance",
+    "Spatial Awareness",
+    "Energy Resistance",
+    "Telepathy Resistance",
+    "Molecular Combustion",
+    "Omnilingualism",
+    "Portal Creation",
+    "Magnetism",
+    "Mind Control Resistance",
+    "Plant Control",
+    "Sonar",
+    "Sonic Scream",
+    "Time Manipulation",
+    "Enhanced Touch",
+    "Magic Resistance",
+    "Invisibility",
+    "Sub-Mariner",
+    "Radiation Absorption",
+    "Intuitive aptitude",
+    "Vision - Microscopic",
+    "Melting",
+    "Wind Control",
+    "Super Breath",
+    "Wallcrawling",
+    "Vision - Night",
+    "Vision - Infrared",
+    "Grim Reaping",
+    "Matter Absorption",
+    "The Force",
+    "Resurrection",
+    "Terrakinesis",
+    "Vision - Heat",
+    "Vitakinesis",
+    "Radar Sense",
+    "Qwardian Power Ring",
+    "Weather Control",
+    "Vision - X-Ray",
+    "Vision - Thermal",
+    "Web Creation",
+    "Reality Warping",
+    "Odin Force",
+    "Symbiote Costume",
+    "Speed Force",
+    "Phoenix Force",
+    "Molecular Dissipation",
+    "Vision - Cryo",
+    "Omnipresent",
+    "Omniscient"
+    ], //what to search by
+    threshold: 0.4,
+}
 
-router.route('/heroes')
+
+router.route('/heroes/name/:nameH')
     .get(async (req,res)=>{
 
         try{
-            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');
+            const nameHP = req.params.nameH.toLowerCase().trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
             const superheroes = JSON.parse(dataSuperheroes);
             let newSuperHeroes = [];
-           // console.log(dataSuperheroes)
 
-            for(let hero of superheroes){
-                try{
-                    const powers = await readPowersFile(hero);
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(nameHP);
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
                     let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
                     for(let p in powers){//going through all the powers
                         if(String(powers[p])==='True'){//if hero has that power
                             powersInfo.powers += `${p},`;
                         } 
                     }
-                    hero.powers = powersInfo.powers;//adding all powers of one hero to hero
-                    // console.log(`hero: ${hero.id}, ${hero.name}`, `powers: ${hero.powers}`)
-                    // console.log("----------------------------------")
-                    newSuperHeroes.push(hero);
-                //    console.log(newSuperHeroes,"new superheroes")
-                //    console.log(powersInfo.powers)
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const powerHP = req.params.powerH.trim(); //name sent
+            console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    const fuse3 = new Fuse(superheroes,options);
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        console.log(hero.item)
+                        console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/publisher/:publisherH')
+    .get(async (req,res)=>{
+
+        try{
+            const pubHP = req.params.publisherH.toLowerCase().trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(pubHP);
+
+            //console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/race/:raceH')
+    .get(async (req,res)=>{
+
+        try{
+            const raceHP = req.params.raceH.toLowerCase().trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(raceHP);
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/name/:nameH/race/:raceH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const raceHP = req.params.raceH.trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Race: raceHP }]});
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+     router.route('/heroes/name/:nameH/publisher/:pubH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const pubHP = req.params.pubH.trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Publisher: pubHP }]});
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/name/:nameH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(nameHP);
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
                 }
                 catch(err){
-                    console.log(err + "error due to powers file");
-                } 
-                //console.log(newSuperHeroes +"new hero")  
+                    console.log(err)
+                }
+
+                }
+                
+                            
             }
-            res.json(newSuperHeroes);
-        } 
-        catch(error){
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/race/:raceH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const raceHP = req.params.raceH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(raceHP);
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+
+    /********************************************************** */
+    router.route('/heroes/publisher/:pubH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const pubHP = req.params.pubH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search(pubHP);
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+
+    router.route('/heroes/race/:raceH/publisher/:pubH')
+    .get(async (req,res)=>{
+
+        try{
+            const raceHP = req.params.raceH.trim();
+            const pubHP = req.params.pubH.trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { Race: raceHP}, {Publisher: pubHP }]});
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/name/:nameH/race/:raceH/publisher/:pubH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const raceHP = req.params.raceH.trim();
+            const pubHP = req.params.pubH.trim(); //name sent
+
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+            let newSuperHeroes = [];
+
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Race: raceHP },{Publisher: pubHP }]});
+
+            console.log(search1)
+
+            try{
+                for(let hero of search1){
+                    const powers = await readPowersFile(hero.item);
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+
+                    for(let p in powers){//going through all the powers
+                        if(String(powers[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                    
+                    hero.item.powers = powersInfo.powers;//adding all powers of one hero to hero
+                    newSuperHeroes.push(hero.item);
+
+                }
+                //console.log(newSuperHeroes)
+                res.json(newSuperHeroes)
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            } 
+
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/name/:nameH/publisher/:pubH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            //const raceHP = req.params.raceH.trim();
+            const pubHP = req.params.pubH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Publisher: pubHP }]});
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+    router.route('/heroes/name/:nameH/race/:raceH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const raceHP = req.params.raceH.trim();
+            //const pubHP = req.params.pubH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Race: raceHP }]});
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+
+    router.route('/heroes/race/:raceH/publisher/:pubH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            //const nameHP = req.params.nameH.trim();
+            const raceHP = req.params.raceH.trim();
+            const pubHP = req.params.pubH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { Publisher: pubHP}, {Race: raceHP }]});
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
             res.status(500).send(`Server unable to fulfill request! ${error}`)
         }        
     });
 
 
+    router.route('/heroes/name/:nameH/race/:raceH/publisher/:pubH/power/:powerH')
+    .get(async (req,res)=>{
+
+        try{
+            const nameHP = req.params.nameH.trim();
+            const raceHP = req.params.raceH.trim();
+            const pubHP = req.params.pubH.trim();
+            const powerHP = req.params.powerH.trim(); //name sent
+
+            //console.log(powerHP)
+            const dataSuperheroes = await fs.readFile(filePathToInfo, 'utf-8');//asynch reading hero file
+            const superheroes = JSON.parse(dataSuperheroes);
+
+            let newSuperHeroes = [];
+            //console.log(superheroes)
+            const fuse1= new Fuse(superheroes,options);
+            const search1 = fuse1.search( {$and: [
+                { name: nameHP}, {Race: raceHP },{Publisher: pubHP }]});
+            //console.log(search1,"Search1")
+            const formattedSearch1 = search1.map(item => item.item);
+
+
+
+
+            try{
+                const powers = await fs.readFile(filePathPowers, 'utf-8');
+                var parsedPowerData = JSON.parse(powers);
+                const fuse2= new Fuse(parsedPowerData,options2);
+                const search2 = fuse2.search({ [powerHP]: "True"});
+                //console.log(search2)
+                
+                for(let pObj of search2){//going through all the powers
+                    let powersInfo = { powers: '' };//object to hold powers of 1 hero
+                    for(let p in pObj.item){
+                        if(String(pObj.item[p])==='True'){//if hero has that power
+                            powersInfo.powers += `${p},`;
+                        } 
+                    }
+                   try{ 
+
+                    const fuse3 = new Fuse(formattedSearch1,options);
+                    //console.log(pObj.item["hero_names"])
+                    const search3 = fuse3.search(pObj.item["hero_names"]);     
+                   // console.log(search3)  
+                    
+                    for(let hero of search3){
+                        hero.item.powers = powersInfo.powers;
+                        //console.log(hero.item)
+                        //console.log(hero.item.power)
+                        newSuperHeroes.push(hero.item)
+                        
+
+                    }
+                }
+                catch(err){
+                    console.log(err)
+                }
+
+                }
+                
+                            
+            }
+            catch(err){
+                console.log(err + "error due to powers file");
+            }
+            res.json(newSuperHeroes)   
+        }catch(error){
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+        }        
+    });
+
+
+    
+
+
+    
+    
+
+
+
+
+    
     async function readPowersFile(hero){//function to read from power file
            try{ 
                     const file = await fs.readFile(filePathPowers, 'utf-8');
@@ -301,8 +1278,6 @@ router.route('/heroes')
                            // console.log(hero.name, power.hero_names)
                             powerFound = power;
                         }
-                     
-                    
                     }
                 
                     return powerFound;

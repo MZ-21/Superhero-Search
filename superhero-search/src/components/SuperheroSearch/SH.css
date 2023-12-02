@@ -22,3 +22,14 @@
 .hero-div {
     width: fit-content;
 }
+.search-bar {
+    margin-bottom: 10px;
+}
+.label {
+    margin-right: 2px;
+    display: inline-block;
+}
+.input-field {
+    margin-right: 10px;
+    margin-left: 2px;
+}
