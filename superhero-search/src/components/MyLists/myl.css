@@ -1,0 +1,52 @@
+.superhero-div-id{
+    display: block;
+    margin: auto auto;
+    width: 500px;
+}
+.header-lists {
+    display: block;
+    margin: auto auto;
+    width: 400px;
+}
+.btn {
+    width: 150px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.listN-input {
+    display: block;
+    margin: auto auto;
+    width: 300px;
+
+}
+.hero-input {
+    display: block;
+    margin: auto auto;
+    width: 300px;
+
+}
+.header-list-add{
+    display: block;
+    margin: auto auto;
+    width: 150px;
+
+}
+.private-lists-container {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+.msgForCreate{
+    display: block;
+    margin: auto auto;
+    width: 120px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.msgForAdd{
+    display: block;
+    margin: auto auto;
+    width: 200px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}

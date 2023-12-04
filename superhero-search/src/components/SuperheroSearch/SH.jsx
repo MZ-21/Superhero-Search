@@ -94,11 +94,3 @@ const SuperheroSearch = () => {
 
 export default SuperheroSearch;
 
-// {
-//     method: "GET",
-//     headers: {
-//     "Authorization": `Bearer ${jwtToken}`,
-//     "Content-Type": "application/json",
-//     },
-// }
-

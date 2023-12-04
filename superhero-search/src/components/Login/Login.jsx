@@ -46,6 +46,8 @@ function Login (){
                 for(let dataValues in data){
                     if(dataValues == "data"){
                         setUsername(data[dataValues][0].username)
+                        localStorage.setItem("username",data[dataValues][0].username);
+                        localStorage.setItem("email",data[dataValues][0].email)
                         
                     }
                     if(dataValues=="accessToken"){

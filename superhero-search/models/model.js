@@ -35,6 +35,24 @@ const heroSchema = new mongoose.Schema({
         default:"Admin",
         required: true
     },
+    createdByPrivate: {
+        type: String,
+        required: true,
+    },
+    rating: {
+        type: String,
+        required: false,
+        default:"No rating",
+    },
+    comments: {
+        type: String,
+        required: false
+    },
+    lastModified: {
+        type: Date,
+        required: true
+    },
+    
     isPrivate: {
         type: Boolean,
         default: true,
