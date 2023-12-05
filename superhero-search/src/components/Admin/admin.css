@@ -16,7 +16,7 @@
     column-gap: 5px;
 }
 .review-box{
-    background-color: rgb(197, 174, 210);
+    background-color: rgb(210, 207, 255);
 
 }
 .btn-admin{
@@ -25,4 +25,34 @@
 }
 .email-input-admin{
     margin-left: 125px
+}
+.policy-input{
+    width: 900px;
+    height: 800px;
+}
+/* .manage-policy-container{
+    display: block;
+    margin: auto auto;
+    width: 900px;
+} */
+.policy-input{
+    display: block;
+    margin: auto auto;
+
+}
+.input-identifier-policy{
+    display: block;
+    margin-left: 180px;
+}
+.title-select{
+    margin-left: 180px;
+
+}
+.display-policy{
+    margin-left: 270px;
+    text-wrap: wrap;
+}
+.btn-policy{
+    margin-left: 180px;
+
 }
