@@ -18,17 +18,74 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false,
-      },
-      verified: {
+    },
+    verified: {
         type: Boolean,
         default: false,
-      }
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false,
+    },
+    
 });
+const reviewSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: false,
+    },
+    email: {
+        type: String,
+        required: true,
+    },
+    listN:{
+        type: String,
+        required: true
+    },
+    lastModified: {
+        type: Date,
+        required: true
+    },
+    rating: {
+        type: String,
+        required: false,
+        default:"No rating",
+    },
+    comments: {
+        type: String,
+        required: false
+    },
+    hidden: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+});
+const policySchema = new mongoose.Schema({
+    title: {
+      type: String,
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    createdBy: {
+      type: String, 
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  });
 
 const heroSchema = new mongoose.Schema({
    listN:{
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     createdBy: {
         type: String,
@@ -76,5 +133,6 @@ const heroSchema = new mongoose.Schema({
 })
 const User = mongoose.model('User',userSchema)
 const HeroList= mongoose.model('HeroList', heroSchema)
-
-module.exports = {HeroList, User}
+const ReviewList = mongoose.model('ReviewList',reviewSchema)
+const Policy = mongoose.model('Policy',policySchema)
+module.exports = {HeroList, User, ReviewList,Policy}
