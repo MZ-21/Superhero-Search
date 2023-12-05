@@ -5,17 +5,17 @@ import { GiFlyingDagger } from "react-icons/gi";
 
 import { useState } from 'react'
 const routerPath2 = "/api/users";
-const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateLists,onAdmin}) => {
+const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateLists,onAdmin,onPrivacy}) => {
   
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Fetch admin status from the backend and update the state
-    const checkAdminStatus = async () => {
+    const checkAdminStatus = async () => {//checking admin status to display admin link if it is admin
       try {
         console.log("called admin status")
         const email = localStorage.getItem('email');
-        const response = await fetch(`${routerPath2}/checkAdmin/${email}`, {
+        const response = await fetch(`${routerPath2}/checkAdmin/${email}`, {//admin check route
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -26,7 +26,7 @@ const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateL
         if (response.ok) {
           const isAdminResponse = await response.json();
           console.log(isAdminResponse.isAdmin,"this is is admin")
-          setIsAdmin(isAdminResponse.isAdmin);
+          setIsAdmin(isAdminResponse.isAdmin);//setting admin to isAdmin property
         }
         else {
           setIsAdmin(false)
@@ -37,11 +37,11 @@ const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateL
       }
     };
 
-    checkAdminStatus();
-  },[]);
+    checkAdminStatus();//calling checkAdminStatus for each mount
+  },[isAdmin]);
 
   // const [activeNav,setActiveNav] = useState('#');
-  return (
+  return (//links to get to other displayed in website
     <div className="nav-container">
         <nav className="nav">
             <div className="brand">
@@ -54,6 +54,9 @@ const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateL
             </div>
             <div className="about-link-container">
               <a className="about-link" href='#about'  >About</a>
+            </div>
+            <div className="privacy-link-container">
+              <a className="privacy-link" href="#privacy" onClick={onPrivacy} >Privacy</a>
             </div>
             <div className="herosearch-link-container">
               <a className="herosearch-link" href="#search" onClick={onSearch} >Search</a>
