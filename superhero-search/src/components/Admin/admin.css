@@ -1,0 +1,28 @@
+.admin-header {
+    display: block;
+    width: 400px;
+    margin: auto auto;
+    color: rgb(104, 17, 17);
+
+}
+.headerOfContainers {
+    margin-left: 125px;
+}
+.display-reviews {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin-left: 120px;
+    row-gap: 5px;
+    column-gap: 5px;
+}
+.review-box{
+    background-color: rgb(197, 174, 210);
+
+}
+.btn-admin{
+    margin-left: 125px;
+    margin-bottom: 10px;
+}
+.email-input-admin{
+    margin-left: 125px
+}

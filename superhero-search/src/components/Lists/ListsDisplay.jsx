@@ -20,6 +20,7 @@ const SuperheroLists = () => {
         // const [power,setPower] = useState('');
         // const [publisher,setPublisher] = useState('');
         const [lists,setLists] = useState(null);
+        const [reviewData,setReviewData] = useState('');
         
 
 
@@ -30,7 +31,7 @@ const SuperheroLists = () => {
                 
                 if(response.ok){
                     const data = await response.json();
-                    console.log(data)
+                   // console.log(data)
                     setLists(data);
                 }
                 else{
@@ -45,6 +46,39 @@ const SuperheroLists = () => {
 
         displayAllLists();    
     },[])
+
+    useEffect(()=>{//fetching data when mounted
+        const displayReviews = async ()=> {//method for displaying reviews
+            try{
+                const jwtToken = localStorage.getItem('token')
+                const privateEmail = localStorage.getItem('email');
+                const response = await fetch(`${routerPath}/heroes/lists/display/review`,{
+                    method: 'GET', 
+                    headers: {
+                        "Authorization": `Bearer ${jwtToken}`,
+                        "Content-Type": "application/json", // Set the content type to JSON
+                    },
+                })
+                
+                if(response.ok){
+                    const data = await response.json();
+                    console.log(data)
+                    setReviewData(data)
+                }
+                else{
+                    
+                    console.log(response.status + "Problem finding the lists!")
+                        
+                }
+            }
+            catch(error) {
+                console.log(error +" Network Error")
+            }
+        }     
+        displayReviews();
+    
+    },[])
+    
 
 
   const toggleExtraInfo = (list) => {
@@ -65,14 +99,24 @@ const SuperheroLists = () => {
                 <h1 className='header-lists'>Public Superhero Lists:</h1>
                 <div className='public-lists-container'>
                     {lists && lists.map((list, index)=>(
+                        <div>
                             <div key={index} className='hero-div'>
-                                <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} - {list.rating} - {list.lastModified}</button>
+                                <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} - {list.rating} -  {list.lastModified}</button>
                                 {list.superhero.map((hero,index2)=>(
                                     <div key={index2}>
                                         {expanded.includes(list) && <FindListsClicked hero={hero}/>}
                                     </div>
                                 ))}
+                                 {expanded.includes(list) && reviewData && reviewData.map((review,index3)=>(
+                                           list.listN === review.listN ? (
+                                                <p hidden={review.hidden} ><strong>Review: </strong>{review.comments}-{review.rating}-{review.username}</p>                            
+                                            
+                                           ):(
+                                               console.log('')
+                                           )
+                                        ))}
                             </div>
+                        </div>
                         ))}
 
                 </div>

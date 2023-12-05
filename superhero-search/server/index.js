@@ -14,6 +14,7 @@ const dbURL = 'mongodb+srv://mijz:3e74i5ZMp5PzNrWk@cluster1.1szi2ht.mongodb.net/
 //importing HeroList schema
 const {HeroList} = require("../models/model");
 const {User} =  require("../models/model");
+const {ReviewList} =  require("../models/model");
 const {tempUser} = require("../models/tempModel")//verification
 
 //connecting to db
@@ -32,7 +33,7 @@ const db = mongoose.connection;
            
         //     console.log(collection.name)});
 
-            // await HeroList.collection.dropIndex({ createdByPrivate: 1 });
+        //     await ReviewList.collection.dropIndex({ email: 1 });
       
     })
     // Step 1: Check Existing Indexes
@@ -213,7 +214,7 @@ routerUser.route('/user/find')
         else {
             User.find({ email })
             .then(data =>{
-                console.log("For some reason, email found")
+            
                 
                 if(data){
                     console.log("data has a length")
@@ -230,18 +231,28 @@ routerUser.route('/user/find')
                         .then(reslt =>{
                             if(reslt){
                                 //jwt
-                                console.log("jwt email error")
-                                const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' })
+                               //console.log(data)
+                                if(data[0].isDisabled===false){
                                 
-                                console.log(accessToken)
-                                //res.send({accessToken: accessToken})
-                                
-                                res.json({
-                                        accessToken: accessToken,
-                                        status: "SUCCESS!",
-                                        message: "Login success",
-                                        data: data,
-                                })
+                                    const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' })
+                                    
+                                    console.log(accessToken)
+                                    //res.send({accessToken: accessToken})
+                                    
+                                    res.json({
+                                            accessToken: accessToken,
+                                            status: "SUCCESS!",
+                                            message: "Login success",
+                                            data: data,
+                                    })
+                                }
+                                else{
+                                    res.json({
+                                        status: "Failed!",
+                                        message: "User is Disabled!",
+                                    })
+
+                                }
                             }else{
                                 res.json({
                                     status: "Failed!",
@@ -456,7 +467,7 @@ router.route('/heroes/name/:nameH')
             let newSuperHeroes = [];
 
             const fuse1= new Fuse(superheroes,options);
-            const search1 = fuse1.search(nameHP);
+            const search1 = fuse1.search({name:nameHP});
 
             console.log(search1)
 
@@ -544,7 +555,7 @@ router.route('/heroes/name/:nameH')
             let newSuperHeroes = [];
 
             const fuse1= new Fuse(superheroes,options);
-            const search1 = fuse1.search(pubHP);
+            const search1 = fuse1.search({Publisher:pubHP});
 
             //console.log(search1)
 
@@ -585,7 +596,7 @@ router.route('/heroes/name/:nameH')
             let newSuperHeroes = [];
 
             const fuse1= new Fuse(superheroes,options);
-            const search1 = fuse1.search(raceHP);
+            const search1 = fuse1.search({Race:raceHP});
 
             console.log(search1)
 
@@ -1465,6 +1476,72 @@ router.route('/heroes/name/:nameH')
                 res.status(500).send("Internal Server Error");
             }
         });
+        routerUser.route('/user/create/admin')//router to add a user
+        .post(async (req, res) => {//creating an empty list
+            try {
+                let {username, email, password} = req.body;
+                username.trim();
+                email.trim();
+                password.trim();
+           
+                
+                    User.find({email})
+                    .then(result => {
+                        console.log(result)
+                        if(result.length){
+                            res.json({
+                                status: "Failed!",
+                                message: "User exists!"
+                            })
+                        }
+                        else {
+                            //creating new user
+                            //password hashing
+                            const saltRounds = 10
+                            console.log(password)
+                            bcrypt.hash(password, saltRounds).then((hashP) => {
+                               const user = new User({//creating user using chema
+                                                    username,
+                                                    email,
+                                                    password: hashP,
+                                                    verified: true,
+                                                    isAdmin:true,
+                                                    });
+                                console.log(user)
+                                user.save().then((result) =>{//saving user
+                                    
+                                })
+                                .catch(err => {
+                                    console.log(err)
+                                    res.json({
+                                        status: "Failed!",
+                                        message: "User creation failed!"
+                                    })
+                                })//error msg
+                            })
+                            .catch(error => {
+                                console.log(error)
+                                res.json({
+                                    status: "Failed!",
+                                    message: "An error occured while hashing password!"
+                                })
+                            })
+                        }
+
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.json({
+                            status: "Failed!",
+                            message: "An error occurred while checking for existing user!"
+                        })
+                    })
+                
+               
+            } catch (err) {
+                res.status(400).send(`Bad request ${err}`)
+            }
+        })
 
 
     routerVerify.route('/verify/:userId/:uniqueString')//router to add a user
@@ -1569,7 +1646,7 @@ router.route('/heroes/name/:nameH')
     })
 
 
-routerUser.route('/user/delete')//router to add a user
+routerUser.route('/user/delete')//router to delete a user
     .delete(async (req, res) => {
         if(isAlphabetical(req.body.username)){
             try {
@@ -1755,6 +1832,7 @@ routerUser.route('/user/changePass')//router to change a user's password
             res.status(400).send("Invalid list name. It must contain alphabetical characters only.");
         }
     });
+    
     router.route(`/hero/add`)   
     .post(authenticateToken,async (req, res) => {
         if(isAlphabetical(req.body.listN)){
@@ -1772,10 +1850,16 @@ routerUser.route('/user/changePass')//router to change a user's password
                                 console.log(hero," this is the hero ")
                                 list.superhero = list.superhero.concat(hero);
                             }
+                            const currentDate = new Date();//getting current date
+                            const formattedDate = currentDate.toISOString()
+                            list.lastModified = formattedDate;
 
                         }
                         else{
-                            list.superhero = list.superhero.concat(req.body.superhero); 
+                            list.superhero = list.superhero.concat(req.body.superhero);
+                            const currentDate = new Date();//getting current date
+                            const formattedDate = currentDate.toISOString()
+                            list.lastModified = formattedDate;
                         }
                          // Save the updated list or the new list
                         const savedList = await list.save();
@@ -1793,6 +1877,48 @@ routerUser.route('/user/changePass')//router to change a user's password
                     return res.status(400).send("Bad request make sure superheroes is a non-empty array");
                 }
             } catch (err) {
+                res.status(400).send("Bad request please check the format of the superheroes sent")
+            }
+        }
+    });
+
+    router.route('/delete/hero')
+    .delete(async (req, res) => {
+        //console.log("m2")
+        const nameHeroCheck = req.body.nameHero;
+        if(isAlphabetical(nameHeroCheck)){
+            try {
+                    let list = await HeroList.findOne({listN: req.body.listN}); //finding list
+                    var flag = false;
+                    if(req.body.listN){
+                        if (list && (list.superhero.length > 0)) {
+                        for(let heroOb of list.superhero){
+                            //console.log(String(heroOb.name).toLowerCase(),String(nameHeroCheck).toLowerCase(),String(heroOb.name).toLowerCase() == String(nameHeroCheck).toLowerCase())
+                            if(String(heroOb.name).toLowerCase() === String(nameHeroCheck).toLowerCase()){
+                                list.superhero = list.superhero.filter(superhero => String(superhero.name).toLowerCase() !== String(nameHeroCheck).toLowerCase());
+                                const currentDate = new Date();//getting current date
+                                const formattedDate = currentDate.toISOString()
+                                list.lastModified = formattedDate;
+                                flag=true;
+                            }
+                        }
+                    if(flag===false){
+                        return res.status(404).send("Superhero not in List!");
+                    }
+        
+                    }else {
+                        return res.status(400).send("Bad request, this list is empty");
+                    }
+                }else {
+                    // If superheroes is not an array or is empty, send a bad request response
+                    return res.status(400).send("Bad request make sure there is a list");
+                }
+                // Save the updated list or the new list
+                const savedList = await list.save();
+                res.status(201).json(savedList);
+
+            } catch (err) {
+                console.log("erro11")
                 res.status(400).send("Bad request please check the format of the superheroes sent")
             }
         }
@@ -1843,34 +1969,235 @@ routerUser.route('/user/changePass')//router to change a user's password
             res.status(500).send(`Server unable to fulfill request! ${error}`)
         }        
     });
-    // router.route(`/hero/add`)   
-    // .get(authenticateToken,async (req, res) => {
-    //     if(isAlphabetical(req.body.listN)){
-    //         try {
-    //             let list = await HeroList.findOne({listN: req.body.listN}); //finding list
-    //             // Check if req.body.superheroes is an array and has elements
-    //             if(Array.isArray(req.body.superhero) && req.body.superhero.length){
-    //                 // If the list exists, concatenate the new superheroes to it
-    //                 //console.log("jere2")
-    //                 if (list) {
-    //                     list.superhero = list.superhero.concat(req.body.superhero);
-                        
-    //                 }else {
-    //                     return res.status(404).send("this list doesn't exist");
-    //                 }
-    //             }else {
-    //                 // If superheroes is not an array or is empty, send a bad request response
-    //                 return res.status(400).send("Bad request make sure superheroes is a non-empty array");
-    //             }
-    //             // Save the updated list or the new list
-    //             const savedList = await list.save();
-    //             res.status(201).json(savedList);
-    //         } catch (err) {
-    //             res.status(400).send("Bad request please check the format of the superheroes sent")
-    //         }
-    //     }
-    // });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////ADMIN FUNCTIONALITIES///////////////////////////////////
+routerUser.route('/checkAdmin/:email')
+.get(authenticateToken,async (req,res)=>{
+
+    try{
+        const emailAdmin = req.params.email.toLowerCase().trim(); 
+
+        try {
+            let user = await User.findOne({ $and: [{email: emailAdmin},{isAdmin:true}]}); //finding list
+            console.log(user)
+            
+            if(user){
+                res.json(user)
+
+            }else {
+                return res.status(404).send("Not An Admin");
+            }
+       
+        } catch (err) {
+            console.log("erro11")
+        }
+
+    }catch(error){
+        res.status(500).send(`Server unable to fulfill request! ${error}`)
+    }        
+});
+router.route('/heroes/lists/display/review')   
+.get(authenticateToken,async (req, res) => {
+        try {
+            let list = await ReviewList.find({});
+            //console.log(list, "All")
+            if(list){
+                return res.json(list)
+            }
+            else {
+                return res.status(404).send('No lists found');
+            }
+        } catch (error) {
+            console.log(error)
+            res.status(400).send('Error finding list');
+        }
+    
+})
+router.route('/lists/review/updateReview')//route to change the hidden field
+.post(authenticateToken,async (req, res) => {
+        try {
+            const emailR = req.body.email.trim();//getting email
+            const listName = req.body.listN.trim();//getting list name
+            const hidd = req.body.hidden;
+            const listReview = await ReviewList.findOne({ $and: [{email: emailR},{listN: listName}]});
+            console.log(listReview, "listReview")
+            if(listReview){
+                listReview.hidden = !(listReview.hidden);
+                console.log(listReview.hidden)
+               
+                const savedList = await listReview.save();
+                res.json({
+                    status:'SUCCESS!',
+                    msg:'Changed Hidden Field'
+                })
+                
+                
+            }
+            else {
+                return res.status(404).send('No review found');
+            }
+        } catch (error) {
+            console.log(error,"error finding review")
+            res.status(400).send('Error finding review');
+        }
+    
+})
+routerUser.route('/new/admin')//route to add an admin
+.post(authenticateToken,async (req, res) => {
+        try {
+            const emailNewAdmin = req.body.email.trim();//getting email
+        
+            const user = await User.findOne({email:emailNewAdmin});
+            console.log(user, "user")
+            if(user){
+                if(user.isAdmin === false){
+                    user.isAdmin = true;
+                    const userSaved = await user.save();
+                    res.json({
+                        status:'SUCCESS!',
+                        msg:'Added New Admin!'
+                    })
+
+                }
+                else{
+                    res.json({
+                        msg:'User is already an Admin!' //if try to enter email where user is admin
+                    })
+                }
+            }
+            else {
+                return res.status(404).send('No user found!');
+            }
+        } catch (error) {
+            console.log(error,"error finding user")//eror msg for  adding admin if they cant find user by that email
+            res.status(400).send('Error finding user');
+        }
+    
+});
+routerUser.route('/disable/user')//route to disable user
+.post(authenticateToken,async (req, res) => {
+        try {
+            const emailUser = req.body.email.trim();//getting email
+        
+            const user = await User.findOne({email:emailUser});//finding user by email admin inputted
+            
+            if(user){
+                user.isDisabled = !user.isDisabled;//saving new info
+                const userSaved = await user.save();//saving new disable info
+                res.json({
+                    disabled: user.isDisabled,
+                    status:'SUCCESS!'
+                })
+            }
+            else {
+                return res.status(404).send('No user found!');
+            }
+        } catch (error) {
+            console.log(error,"error finding user")
+            res.status(400).send('Error finding user');
+        }
+    
+})
+// router.route('/heroes/lists/display/review/delete')   
+// .delete(async (req, res) => {
+//         try {
+//             let list = await ReviewList.deleteOne({ $and: [{email: req.body.email},{listN: req.body.listN}]});
+//             console.log(list)
+//             console.log(list, "deleted")
+//             if(list){
+//                 //const savedList = await list.save();
+//                 res.json("Deleted")
+//             }
+//             else {
+//                 return res.status(404).send('No review found');
+//             }
+//         } catch (error) {
+//             console.log(error)
+//             res.status(400).send('Error finding list');
+//         }
+    
+// })
+router.route(`/list/review`)   
+.post(authenticateToken,async (req, res) => {
+    if(isAlphabetical(req.body.listN)){
+        try {
+            console.log("review list was called")
+            let review = await ReviewList.findOne({ $and: [{listN: req.body.listN},{email:req.body.email}]}); //finding list
+                // If the list exists, concatenate the new superheroes to it
+                console.log(review,"review")
+            if (review) {
+                if(req.body.review !== ''){
+                    console.log(req.body.review,"review")
+                    console.log(review.comments,"comments")
+                    review.comments = review.comments.concat(req.body.review);
+
+                }
+                else{
+                    review.rating = req.body.rating;
+                }
+                //date modified
+                // Save the updated list or the new list
+                
+                const currentDate = new Date();//getting current date
+                const formattedDate = currentDate.toISOString()
+                review.lastModified = formattedDate;
+
+                
+                let list = await HeroList.findOne({email:req.body.email}); //finding list
+                if(list){
+                    const currentDate2 = new Date();//getting current date
+                    const formattedDate2 = currentDate2.toISOString()
+                    list.lastModified = formattedDate2;
+                }
+                
+                
+                const savedList = await review.save();
+                console.log(savedList)
+                res.json({
+                    status: "SUCCESS!",
+                    message: "List Saved!"
+                })
+
+
+                  
+                   // console.log(list.superhero)
+                    
+            }else {//if review DNE, create it
+                const currentDate = new Date();//getting current date
+                const formattedDate = currentDate.toISOString()
+                console.log("in else")
+
+                review = new ReviewList({
+                      listN: req.body.listN,
+                      username: req.body.username,
+                      email: req.body.email,
+                      lastModified: formattedDate,
+                      rating: req.body.rating,
+                      comments: req.body.review,
+                });
+                let list = await HeroList.findOne({email:req.body.email}); //finding list
+                if(list){
+                    const currentDate = new Date();//getting current date
+                    const formattedDate = currentDate.toISOString()
+                    list.lastModified = formattedDate;
+                }
+                const savedList = await review.save();
+                res.json({
+                    review: savedList,
+                    status: "SUCCESS!",
+                    message: "List Saved!"
+                })
+
+                    
+            }
+            
+        } catch (err) {
+            console.log(err)
+            res.status(400).send("Bad request please check the format of the superheroes sent")
+        }
+    }
+});
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 

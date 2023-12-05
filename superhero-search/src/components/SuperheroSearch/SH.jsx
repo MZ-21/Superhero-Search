@@ -81,9 +81,11 @@ const SuperheroSearch = () => {
                 </div>
                 <div className="hero-grid">
                     {heroes.map((hero, index)=>(
-                        <div key={index} className='hero-div'>
-                            <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(hero)}><strong>{hero.name}</strong> - {hero.Publisher}</button>
-                            {expanded.includes(hero) && <FindHeroClicked hero={hero}/>}
+                        <div key={index + '1'}>
+                            <div key={index} className='hero-div'>
+                                <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(hero)}><strong>{hero.name}</strong> - {hero.Publisher}</button>
+                                {expanded.includes(hero) && <FindHeroClicked hero={hero}/>}
+                            </div>
                         </div>
                     ))}
                 </div>

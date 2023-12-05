@@ -76,7 +76,7 @@ function CreateAccount (){
                         </div>
                         <div className="password-input">
                             <p className="input-identifier">Password:</p>
-                            <input className="input" type='text' placeholder='password' onChange={(e) => setPassword(e.target.value)}></input>
+                            <input className="input" type='password' placeholder='password' onChange={(e) => setPassword(e.target.value)}></input>
                         </div>
                     
                         <button className='btn' onClick={authenticate}>Create</button>

@@ -38,6 +38,7 @@
     margin-top: 30px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    column-gap: 4px;
 }
 .header-list-display{
     display: block;

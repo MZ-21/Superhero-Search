@@ -5,7 +5,7 @@ import {useState, useRef } from 'react';
 const routerPath = "/api/superheroes";
 const routerPath2 = "/api/users";
 
-function Login (){
+function Login ({onLogin}){
     console.log("hi")
     const [email, setEmail] = useState(''); //update username
     const [username,setUsername] = useState('');
@@ -55,7 +55,7 @@ function Login (){
                     }
                     if(data[dataValues] == "SUCCESS!"){
                         // Storing in local storage
-                        console.log(dataJWT)
+                        //console.log(dataJWT)
                         localStorage.setItem("token",dataJWT);
                         setLoggedIn('true')
                         
@@ -97,7 +97,7 @@ function Login (){
                         </div>
                         <div className="password-input">
                             <p className="input-identifier">Password:</p>
-                            <input className="input" type='text' value={password} onChange={(e)=> setPassword(e.target.value)} placeholder='password'></input>
+                            <input className="input" type='password' value={password} onChange={(e)=> setPassword(e.target.value)} placeholder='password'></input>
                         </div>
                     </div>
                     <button className="btn" onClick={authenticate}>Log in</button>

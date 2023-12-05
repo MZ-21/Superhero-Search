@@ -50,3 +50,9 @@
     margin-top: 20px;
     margin-bottom: 20px;
 }
+.review-input-container{
+    display: block;
+    margin: auto auto;
+    width: 350px;
+    
+}

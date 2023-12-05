@@ -1,9 +1,45 @@
 import React from 'react'
 import './Nav.css'
+import { useEffect } from 'react';
 import { GiFlyingDagger } from "react-icons/gi";
 
 import { useState } from 'react'
-const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateLists}) => {
+const routerPath2 = "/api/users";
+const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateLists,onAdmin}) => {
+  
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Fetch admin status from the backend and update the state
+    const checkAdminStatus = async () => {
+      try {
+        console.log("called admin status")
+        const email = localStorage.getItem('email');
+        const response = await fetch(`${routerPath2}/checkAdmin/${email}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the user's token for authentication
+          },
+        });
+
+        if (response.ok) {
+          const isAdminResponse = await response.json();
+          console.log(isAdminResponse.isAdmin,"this is is admin")
+          setIsAdmin(isAdminResponse.isAdmin);
+        }
+        else {
+          setIsAdmin(false)
+          console.log("There was a problem finding Admin")
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
+    checkAdminStatus();
+  },[]);
+
   // const [activeNav,setActiveNav] = useState('#');
   return (
     <div className="nav-container">
@@ -39,9 +75,15 @@ const Nav = ({onLoginClick,onCreateAccountClick,onSearch,onCP,onLists,onPrivateL
             <div className="cp-link-container">
               <a className="cp-link" href="#cp" onClick={onCP} >Change Password</a>
             </div>
+            {isAdmin ===true && (
+              <div className="admin-link-container">
+                <a className="admin-link" href="#admin" onClick={onAdmin} >Admin</a>
+              </div>
+            )}
             <div className="login-link-container">
               <a className="login-link" href="#login" onClick={onLoginClick} >Log-in</a>
             </div>
+           
         </nav>
 
     </div>

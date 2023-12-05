@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './myl.css';
 import FindListsClicked from '../Lists/ListsDisplayRender.jsx';
+
 const routerPath = "/api/superheroes";
 // const view = require('./SHRender')
 
@@ -17,7 +18,15 @@ const MySuperheroLists = () => {
         const [lists,setLists] = useState(null);
         const [msgOfAdd, setMsgOfAdd] = useState('');
         const [listNForDelete,setlistNForDelete] = useState('');
+        const [listNForDeleteHero,setlistNForDeleteHero] = useState('');
+        const [listNForReview,setlistNForReview] = useState('');
+        const [review,setReview] = useState('');
+        const [ratingOfRev, setRatingOfRev] = useState(0);
+        const [nameHForDelete,setNameHForDelete] = useState('');
         const [msgForDelete,setMsgForDelete] = useState('');
+        const [msgForDeleteH,setMsgForDeleteH] = useState('');
+        const [reviewData,setReviewData] = useState('');
+        const [hiddenReview, setReviewHidden] = useState(false);
 
         const callDelete = () => {
             deleteAList(listNForDelete);
@@ -166,6 +175,111 @@ const MySuperheroLists = () => {
         }
 
   }
+  const callDeleteHeroes = () => {
+    deleteHeroes(nameHForDelete,listNForDeleteHero)
+}
+
+const deleteHeroes = async (nameEnteredHero,enteredListName) => {
+    try{
+        const listNameInput = enteredListName.trim();
+        const nameOfHero = nameEnteredHero.trim();
+
+        const jwtToken = localStorage.getItem('token')
+        // "hero":`${nameHero}`,
+            var requestBody = {
+                "listN": `${listNameInput}`,
+                "nameHero": nameOfHero,
+            }
+            const response = await fetch(`${routerPath}/delete/hero`,
+                {
+                    method: 'DELETE', 
+                    headers: {
+                        "Authorization": `Bearer ${jwtToken}`,
+                        "Content-Type": "application/json", // Set the content type to JSON
+                    },
+                    body: JSON.stringify(requestBody),
+                })
+                if(response.ok){
+                    const data = await response.json();
+                    setMsgForDeleteH("SUCCESS! Hero was deleted. Refresh.")
+                    
+                }
+                else{
+                    setMsgForDeleteH("Problems Deleting Hero. Make sure you're logged in or inputted the correct hero/list name")
+                }
+            
+          
+    }
+    catch(error) {
+        console.log(error +" Network Error")
+    }
+
+}
+const callHide = () => {
+    setReviewHidden(true);
+}
+
+const callAddReview = () => {
+    addReview(review,listNForReview,ratingOfRev)
+}
+
+const addReview = async (review,enteredListName,ratingOfList) => {
+    try{
+        const listNameInput = enteredListName.trim();
+        const reviewComment = review.trim();
+        const rating = ratingOfList;
+
+        const jwtToken = localStorage.getItem('token')
+        const userN = localStorage.getItem("username");
+        const emailU = localStorage.getItem("email");
+        // "hero":`${nameHero}`,
+            var requestBody = {
+                "listN": `${listNameInput}`,
+                "review": reviewComment,
+                "rating": rating,
+                "username":userN,
+                "email":emailU,
+                
+            }
+            const response = await fetch(`${routerPath}/list/review`,
+                {
+                    method: 'POST', 
+                    headers: {
+                        "Authorization": `Bearer ${jwtToken}`,
+                        "Content-Type": "application/json", // Set the content type to JSON
+                    },
+                    body: JSON.stringify(requestBody),
+                })
+                if(response.ok){
+                    const data = await response.json();
+                    console.log(data,"data")
+                    // setReviewData(data);
+                    setMsgForDeleteH("SUCCESS! List was reviewed. Refresh.")
+                    
+                }
+                else{
+                    console.log("error when adding review")
+                    setMsgForDeleteH("Problems Reviewing List. Make sure you're logged in or inputted the correct list name")
+                }
+            
+          
+    }
+    catch(error) {
+        console.log(error +" Network Error")
+    }
+}
+
+
+
+const buttonIncrease = () => {
+    if(ratingOfRev > 4){
+        setRatingOfRev(0);
+    }
+    else {
+        setRatingOfRev(1 + ratingOfRev);
+
+    }
+}
 
   useEffect(()=>{//fetching data when mounted
     const displayPrivateLists = async ()=> {//method for displaying heroes
@@ -183,7 +297,10 @@ const MySuperheroLists = () => {
             if(response.ok){
                 const data = await response.json();
                 console.log(data)
-                setLists(data);
+                const data2 = data.sort((a, b) =>  b.dateModified - a.dateModified);
+                
+                console.log(data2)
+                setLists(data2);
             }
             else{
                 
@@ -197,6 +314,39 @@ const MySuperheroLists = () => {
     }     
     displayPrivateLists();
    
+},[])
+
+
+useEffect(()=>{//fetching data when mounted
+    const displayReviews = async ()=> {//method for displaying reviews
+        try{
+            const jwtToken = localStorage.getItem('token')
+            const privateEmail = localStorage.getItem('email');
+            const response = await fetch(`${routerPath}/heroes/lists/display/review`,{
+                method: 'GET', 
+                headers: {
+                    "Authorization": `Bearer ${jwtToken}`,
+                    "Content-Type": "application/json", // Set the content type to JSON
+                },
+            })
+            
+            if(response.ok){
+                const data = await response.json();
+                console.log(data)
+                setReviewData(data)
+            }
+            else{
+                
+                console.log(response.status + "Problem finding the lists!")
+                    
+            }
+        }
+        catch(error) {
+            console.log(error +" Network Error")
+        }
+    }     
+    displayReviews();
+
 },[])
 
 
@@ -250,17 +400,61 @@ const toggleExtraInfo = (list) => {
                         <button className='btn' onClick={callAddHeroes}>Add a Hero</button>
                         <p className='msgForAdd'>{msgOfAdd}</p>
                 </div>
+                <div className='delete-hero-input-container'>
+                        <h2 className='header-list-display'>Delete a Hero</h2>
+                        <div className="listN-input">
+                            <p className="input-identifier">List Name:</p>
+                            <input className="input" type='text' value={listNForDeleteHero} onChange={(e) => setlistNForDeleteHero(e.target.value)} placeholder='List Name'></input>
+                        </div>
+                        <div className="hero-input">
+                            <p className="input-identifier">Hero Name:</p>
+                            <input className="input" type='text' value={nameHForDelete} onChange={(e) => setNameHForDelete(e.target.value)} placeholder='Hero Name'></input>
+                        </div>
+                        <button className='btn' onClick={callDeleteHeroes}>Delete Hero</button>
+                        <p className='msgForAdd'>{msgForDeleteH}</p>
+                </div>
+                <div className='review-input-container'>
+                        <h2 className='header-list-display'>Review a List</h2>
+                        <div className="listN-input">
+                            <p className="input-identifier">List Name:</p>
+                            <input className="input" type='text' value={listNForReview} onChange={(e) => setlistNForReview(e.target.value)} placeholder='List Name'></input>
+                        </div>
+                        <div className="review-input">
+                            <p className="input-identifier">Review Comment:</p>
+                            <input className="input" type='text' value={review} onChange={(e) => setReview(e.target.value)} placeholder='comment'></input>
+                        </div>
+                        <div className="rating-input">
+                            <p className="input-identifier">Rating:</p>
+                            <button onClick={(buttonIncrease)}  onChange={(e) => setRatingOfRev(e.target.value)}>{ratingOfRev}</button>
+                        </div>
+
+                        <button className='btn' onClick={callAddReview}>Add Review</button>
+                        <p className='msgForAdd'>{}</p>
+                </div>
                 <div className='display-hero-input-container'>
                         <h2 className='header-list-display'>Display My Lists</h2>
                         <div className="private-lists-container">
                             {lists && lists.map((list, index)=>(
-                                <div key={index} className='hero-div'>
-                                    <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} - {list.rating} - {list.lastModified}</button>
-                                    {list.superhero.map((hero,index2)=>(
-                                        <div key={index2}>
-                                            {expanded.includes(list) && <FindListsClicked hero={hero}/>}
-                                        </div>
-                                    ))}
+                                <div key={index+"1"}>
+                                    <div key={index} className='hero-div'>
+                                        <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} - {list.rating} - {list.lastModified} - Private: {`${list.isPrivate}`}</button>
+                                        {list.superhero.map((hero,index2)=>(
+                                            <div key={index2}>
+                                                {expanded.includes(list) && <FindListsClicked hero={hero}/>}
+                                          
+                                            </div>
+                                            
+                                        ))}
+                                         {expanded.includes(list) && reviewData && reviewData.map((review,index3)=>(
+                                           list.listN === review.listN && review.hidden===false && list.createdByPrivate===review.email ? (
+                                                <p hidden={hiddenReview ? false: (true , review.hidden=true)} onClick={callHide}><button><strong>Review: </strong></button>{review.comments}-Rating: {review.rating}-By: {review.username} Modified: {review.lastModified}</p>                            
+                                            
+                                           ):(
+                                               console.log('')
+                                           )
+                                        ))}
+                                     
+                                    </div>   
                                 </div>
                             ))}  
                         </div>
