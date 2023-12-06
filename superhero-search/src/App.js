@@ -12,6 +12,7 @@ import { useState } from 'react';
 import SuperheroSearch from './components/SuperheroSearch/SH.jsx';
 import ChangePass from './components/ChangePassword/CP.jsx';
 import MyAdminRights from './components/Admin/admin.jsx'
+import Security from './components/Security/Security.jsx';
 
 
 function App() {
@@ -39,9 +40,12 @@ function App() {
   const displayAdminSettings = () => {
     setDisplayedComponent('admin')
   }
+  const displayPrivacy = () => {
+    setDisplayedComponent('privacy')
+  }
   return (
     <div className="App">
-      <Nav onLoginClick={displayLogin} onCreateAccountClick = {displayCreateAccount} onSearch={displaySearch} onCP={displayChangePass} onLists = {displayLists} onPrivateLists={displayPrivateLists} onAdmin={displayAdminSettings}/>
+      <Nav onLoginClick={displayLogin} onCreateAccountClick = {displayCreateAccount} onSearch={displaySearch} onCP={displayChangePass} onLists = {displayLists} onPrivateLists={displayPrivateLists} onAdmin={displayAdminSettings} onPrivacy={displayPrivacy}/>
       <Home/>
       <About/>
       {displayComponent=== 'login' && <Login/>}
@@ -51,6 +55,7 @@ function App() {
       {displayComponent === 'list' && <SuperheroLists/>}
       {displayComponent === 'privatelist' && <MySuperheroLists/>}
       {displayComponent === 'admin' && <MyAdminRights/>}
+      {displayComponent === 'privacy' && <Security/>}
     </div>
   );
 }
