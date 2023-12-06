@@ -21,6 +21,7 @@ const SuperheroLists = () => {
         // const [publisher,setPublisher] = useState('');
         const [lists,setLists] = useState(null);
         const [reviewData,setReviewData] = useState('');
+        const [reviewRating,setReviewRating] = useState('');
         
 
 
@@ -63,7 +64,7 @@ const SuperheroLists = () => {
                 if(response.ok){
                     const data = await response.json();
                     console.log(data)
-                    setReviewData(data)
+                    setReviewData(data);
                 }
                 else{
                     
@@ -101,7 +102,7 @@ const SuperheroLists = () => {
                     {lists && lists.map((list, index)=>(
                         <div>
                             <div key={index} className='hero-div'>
-                                <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} - {list.rating} -  {list.lastModified}</button>
+                                <button id={index} className='label-heroes' onClick={() => toggleExtraInfo(list)}><strong>{list.listN}</strong> - {list.createdBy} - {list.superhero.length} -  {list.lastModified}</button>
                                 {list.superhero.map((hero,index2)=>(
                                     <div key={index2}>
                                         {expanded.includes(list) && <FindListsClicked hero={hero}/>}
@@ -110,7 +111,7 @@ const SuperheroLists = () => {
                                  {expanded.includes(list) && reviewData && reviewData.map((review,index3)=>(
                                            list.listN === review.listN ? (
                                                 <p hidden={review.hidden} ><strong>Review: </strong>{review.comments}-{review.rating}-{review.username}</p>                            
-                                            
+                                               
                                            ):(
                                                console.log('')
                                            )
