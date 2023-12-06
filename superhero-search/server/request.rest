@@ -1,0 +1,9 @@
+POST http://localhost:5000/api/superheroes/heroes/list/create
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InMiLCJpYXQiOjE3MDA5NTYyNzd9.m3W97sw0dzt-k-BAMumG8TtzlZwpTnuQXG9g06q6tfk
+Content-Type: application/json
+
+{
+   "listN": "mmsm",
+   "createdBy": "Jimmy"
+}
+
