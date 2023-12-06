@@ -12,10 +12,11 @@ const bcrypt = require("bcrypt");
 const dbURL = 'mongodb+srv://mijz:3e74i5ZMp5PzNrWk@cluster1.1szi2ht.mongodb.net/?retryWrites=true&w=majority';
 //const nev = require('email-verification')(mongoose);//email verification
 //importing HeroList schema
-const {HeroList} = require("../models/model");
+const {HeroList, Policy} = require("../models/model");
 const {User} =  require("../models/model");
 const {ReviewList} =  require("../models/model");
 const {tempUser} = require("../models/tempModel")//verification
+// const {Policy} = require("../models/model")//
 
 //connecting to db
 mongoose.connect(dbURL, {
@@ -41,10 +42,10 @@ const db = mongoose.connection;
 
 
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5000; //use 5000 or another port available
 const router = express.Router(); //route object
 const routerUser = express.Router(); //route object
-const routerVerify = express.Router();
+const routerVerify = express.Router();//route for verifying
 
 
 
@@ -58,30 +59,32 @@ app.use('/',express.static(joinedPath));
 app.use(express.json()); //no longer need json.parse in each req
 
 
-
-
-//for html
-// app.get('/',(req,res)=>{
-//     res.sendFile('index.html', { root: joinedPath });
-// });
-
 //reading from json 
-const filePathToInfo = "superheroes/superhero_info.json";
-const filePathPowers = "superheroes/superhero_powers.json";
+const filePathToInfo = "superheroes/superhero_info.json"; //path to superhero file
+const filePathPowers = "superheroes/superhero_powers.json";//path to powers file
 
-function isAlphabetical(input) {
+function isAlphabetical(input) {//checking if input is just alphabetical numbers
     const regex = /^[a-zA-Z ]*$/;
     return regex.test(input);
   }
-
+//function to check if input is just an integer
   function isInteger(input) {
     const regex = /^\p{Nd}+$/u;
     return regex.test(input);
   }
-
-  
+//function to check if email is a vaild input, including alphabetical characters, @ symbol, and allowing integers
+function isEmailValid(email) {//sets a min and max length for the email
+    // Adjust the regex to include length constraints
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    //ensures basic structure of email address
+    return regex.test(email);
+}
+function isAlphanumeric(input) {//function to check if it is both numbers and letters -> for password
+    const regex = /^[a-zA-Z0-9 ]*$/;
+    return regex.test(input);
+}
 //email handler 
-const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');//allows 
 
 //unique string
 const {v4: uuidv4} = require('uuid');//need uuid v4
@@ -89,61 +92,56 @@ const { log } = require('console');
 //const { resourceUsage } = require('process');
 
 //nodemailer
-let transporter = nodemailer.createTransport({
+let transporter = nodemailer.createTransport({ //using this valid email to send emails to users for verification
     service: "gmail",
     auth: {
-            user: process.env.VERIFICATION_EMAIL,
-            pass: process.env.VERIFICATION_EMAIL_PASSWORD,
+            user: process.env.VERIFICATION_EMAIL, //email used to send 
+            pass: process.env.VERIFICATION_EMAIL_PASSWORD, //password of that email so can send
           }
 })
 //testing success
-transporter.verify((err,success)=>{
+transporter.verify((err,success)=>{//checking if ready to send emails
     if(err){
-        console.log(err)
+        console.log(err)//if there is an error, log the error
     } else {
-        console.log("Ready for message!")
+        console.log("Ready for message!")//else, ready to send  a msg by SMTP
         console.log(success)
     }
 })
 
 
-//verification email
-const sendVerificationEmail = ({_id, email},res) => {
+//verification email //FROM youtube video by ToThePointCode https://www.youtube.com/watch?v=v6Ul3o8D-js -> Followed steps and understood process, implemented while following the video -> made adjustements
+const sendVerificationEmail = ({_id, email},res) => {//sending verification email sends an email
     //url to be used in the email
     const currentUrl = "http://localhost:5000/";
-    let uniqueString = uuidv4() + _id;
-    console.log(uniqueString)
-    console.log(email)
-    console.log(_id)
+    let uniqueString = uuidv4() + _id; //unique string to ensure it hasnt been tampered with
     //mail
     const mailOptions = {
-        from: process.env.VERIFICATION_EMAIL,
+        from: process.env.VERIFICATION_EMAIL, //email used to send
         to: email,
         subject: "Verification email",
         html: `<p>Verify your email address to complete account creation.</p><p>This link <b>expires in 6 hours</b>.</p><p>Press <a href=
         ${currentUrl + "user/verify/" + _id + "/" + uniqueString
-        }>here</a>to proceed</p>`,
+        }>here</a>to proceed</p>`, //url to direct to page that displays whether theyre verified or not
     }
     
     //hash the uniqueString
-    const saltRounds = 10;
+    const saltRounds = 10; //
     bcrypt
     .hash(uniqueString, saltRounds)
     .then((hashedString)=>{
         //set values in userVerification collection
         const newVerification = new tempUser({
-            userId: _id,
-            uniqueString: hashedString,
-            createdAt: Date.now(),
+            userId: _id, //user id for uniqueness
+            uniqueString: hashedString, //the unique string hashed for protection
+            createdAt: Date.now(), //date created
             expiresAt: Date.now() + 21600000, //expires 6 hours from now
         })
-        console.log(_id, hashedString)
-        console.log(newVerification)
-        newVerification
+        newVerification //saving the temporary user until verified
         .save()
-        .then(()=>{
+        .then(()=>{//next
             transporter
-            .sendMail(mailOptions)
+            .sendMail(mailOptions)//sending the mail to the user
             .then(()=>{
                 //email sent and verification saved
                 res.json({
@@ -151,7 +149,7 @@ const sendVerificationEmail = ({_id, email},res) => {
                     message: "Verification email sent!"
                 })
             })
-            .catch((error)=>{
+            .catch((error)=>{//catching if there was a problem sending the email
                 console.log(error)
                 res.json({
                     status: "Failed!",
@@ -159,7 +157,7 @@ const sendVerificationEmail = ({_id, email},res) => {
                 })
             })
         })
-        .catch((err)=>{
+        .catch((err)=>{//catching if there was a problem saving the verification data
             console.log(err)
             res.json({
                 status: "Failed!",
@@ -167,7 +165,7 @@ const sendVerificationEmail = ({_id, email},res) => {
             })
         })
     })
-    .catch((error)=>{
+    .catch((error)=>{//catching if there was a problem hashing email
         console.log(error)
         res.json({
             status: "Failed!",
@@ -178,18 +176,18 @@ const sendVerificationEmail = ({_id, email},res) => {
 }
 /************************user**************************/
 
-function authenticateToken(req,res,next){
+function authenticateToken(req,res,next){//method to check if the token is vaild
     //header
-    console.log("called authenticate token")
+    //console.log("called authenticate token")
     const authHeader = req.headers['authorization'];//getting token which is in headers
-    console.log(authHeader)
+    //console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1];//if have authHeader, get token
     if(token == null){
-        return res.sendStatus(401);//Web Dev Simplified JWT Authentication
+        return res.sendStatus(401);//Web Dev Simplified JWT Authentication https://www.youtube.com/watch?v=mbsmsi7l3r4&t=1189s, followed along with video to understand JWT & implemnt
     }
-    console.log(token)
-    console.log(process.env.ACCESS_TOKEN_SECRET + "SECRET")
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,user)=>{
+    //console.log(token)
+    //console.log(process.env.ACCESS_TOKEN_SECRET + "SECRET")
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,user)=>{//using provided jwt method to verify if the token is valid
         if(err) {
             console.log(err + "here is the error from")
             return res.sendStatus(403)};
@@ -198,18 +196,28 @@ function authenticateToken(req,res,next){
     })
 
 }
+const minELength = 5;
+const maxLength = 320;
 
-routerUser.route('/user/find')   
+routerUser.route('/user/find')//route to finding user
     .post((req, res) => {
-        let {email,password} = req.body;
+        let {email,password} = req.body; //getting email and passowrd
         email = email.trim();
         password = password.trim();
 
-        if(email == "" || password == ""){
+        if(email == "" || password == ""){ //checking if fields are empty and displaying appropriate msg
             res.json({
                 status: "Failed!",
                 message: "Fields are empty!"
             });
+        }
+        if(!isEmailValid(email)){ //checking if email is in valid format
+            console.log("Not valid email input!")
+            res.json({
+                status: "Failed!",
+                message: "Not valid email input!!"
+            });
+
         }
         else {
             User.find({ email })
@@ -1380,34 +1388,37 @@ router.route('/heroes/name/:nameH')
     routerUser.route('/user/create')//router to add a user
         .post(async (req, res) => {//creating an empty list
             try {
-                let {username, email, password} = req.body;
+                let {username, email, password} = req.body; //getting parameters from body
                 username.trim();
                 email.trim();
                 password.trim();
                 
-                if(username == "" || email == "" || password == ""){
+                if(username == "" || email == "" || password == ""){//checking if parameters are empty and logging appropriate msg
                     res.json({
                         status: "Failed!",
                         message: "Empty input fields!"
                     })
                 }
-                else if(!/^[a-zA-Z ]*$/.test(username)){
+                else if(!isAlphabetical(username)){ //checking if username is alphabetical
                     res.json({
                         status: "Failed!",
                         message: "Invalid name entered!"
                     })
                 }
-                else if(!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)){
+                else if(!isEmailValid(email)){//checking if email is valid
                     res.json({
                         status: "Failed!",
                         message: "Invalid email entered!"
                     })
+                }else if(!isAlphanumeric(password)){
+                    res.json({
+                        status: "Failed!",
+                        message: "Invalid password entered! Only numbers and letters allowed!"
+                    })
                 }
-
                 else {
-                    User.find({email})
+                    User.find({email})//checking if user with that email already exists and loggin apropriate msg
                     .then(result => {
-                        console.log(result)
                         if(result.length){
                             res.json({
                                 status: "Failed!",
@@ -1419,8 +1430,8 @@ router.route('/heroes/name/:nameH')
                             //password hashing
                             const saltRounds = 10
                             console.log(password)
-                            bcrypt.hash(password, saltRounds).then((hashP) => {
-                               const user = new User({//creating user using chema
+                            bcrypt.hash(password, saltRounds).then((hashP) => {//hashing password for extra security
+                               const user = new User({//creating user using schema
                                                     username,
                                                     email,
                                                     password: hashP,
@@ -1430,9 +1441,9 @@ router.route('/heroes/name/:nameH')
                                 user.save().then((result) =>{//saving user
                                     //handle account verification
                                     console.log(result)
-                                    sendVerificationEmail(result, res);
+                                    sendVerificationEmail(result, res);//sending the verification email
                                 })
-                                .catch(err => {
+                                .catch(err => {//catching error if cant create user 
                                     console.log(err)
                                     res.json({
                                         status: "Failed!",
@@ -1440,7 +1451,7 @@ router.route('/heroes/name/:nameH')
                                     })
                                 })//error msg
                             })
-                            .catch(error => {
+                            .catch(error => {//catching error if cant hash password
                                 console.log(error)
                                 res.json({
                                     status: "Failed!",
@@ -1450,7 +1461,7 @@ router.route('/heroes/name/:nameH')
                         }
 
                     })
-                    .catch(err => {
+                    .catch(err => {//catching error if failed when checking for same user
                         console.log(err);
                         res.json({
                             status: "Failed!",
@@ -1459,24 +1470,24 @@ router.route('/heroes/name/:nameH')
                     })
                 }
                
-            } catch (err) {
+            } catch (err) {//eror if they made a bad request
                 res.status(400).send(`Bad request ${err}`)
             }
         })
         .get(async (req, res) => {//getting all the users created
             try {
-                let user = await User.find({}, 'username email password isAdmin');
+                let user = await User.find({}, 'username email password isAdmin'); //finding all info
                 if(user.length > 0){
                     res.json(user)
                 }
                 else{
-                    res.status(404).send('No user found');
+                    res.status(404).send('No user found');//didnt find that user
                 }
             } catch (error) {
                 res.status(500).send("Internal Server Error");
             }
         });
-        routerUser.route('/user/create/admin')//router to add a user
+        routerUser.route('/user/create/admin')//router to add a user as admin
         .post(async (req, res) => {//creating an empty list
             try {
                 let {username, email, password} = req.body;
@@ -1667,68 +1678,83 @@ routerUser.route('/user/changePass')//router to change a user's password
     .post(async (req, res) => {
             const oldPasswordS = req.body.oldPassword.trim();
             const newPasswordS = req.body.newPassword.trim();
-            try {
-                let user = await User.findOne({email: req.body.email}); //finding list
-                if (user) {
-                    //If the user exist, change pass
-                    bcrypt
-                    .compare(oldPasswordS, user.password)//comparing the oldPassword to the password in the db
-                    .then(function(results){
-                        if(results){//if the passwords match, let them change it
-                            //hashing password
-                            const saltRounds = 10
-                            
-                            bcrypt.hash(newPasswordS, saltRounds)
-                            .then((hashP) => {
-                                user.password = hashP; //changing old password to new password
+            const emailUserChange = req.body.email; //email of user
+            if(!isAlphanumeric(oldPasswordS) || !isAlphanumeric(newPasswordS)){
+                res.json({
+                    status: "Failed!",
+                    message: "Passwords are not Alphanumeric!"
+                })
+            }
+            else if(!isEmailValid(emailUserChange)){
+                res.json({
+                    status: "Failed!",
+                    message: "Email is not a valid input!"
+                })
+            }
+            else{
+                try {
+                    let user = await User.findOne({email: emailUserChange}); //finding list
+                    if (user) {
+                        //If the user exist, change pass
+                        bcrypt
+                        .compare(oldPasswordS, user.password)//comparing the oldPassword to the password in the db
+                        .then(function(results){
+                            if(results){//if the passwords match, let them change it
+                                //hashing password
+                                const saltRounds = 10
+                                
+                                bcrypt.hash(newPasswordS, saltRounds)
+                                .then((hashP) => {
+                                    user.password = hashP; //changing old password to new password
 
-                                const savedUser = user.save(); 
+                                    const savedUser = user.save(); //saving user 
 
-                                res.json({
-                                    status: "SUCCESS!",
-                                    message: "Password Changed!"
+                                    res.json({
+                                        status: "SUCCESS!",//if user pass is saved then send success msg
+                                        message: "Password Changed!"
+                                    })
                                 })
-                            })
-                            .catch(err => {
-                                console.log(err)
-                                res.json({
+                                .catch(err => {
+                                    console.log(err)
+                                    res.json({
+                                        status: "Failed!", //else password is not acceotable
+                                        message: "Unacceptable Password!"
+                                    })
+                                })
+                            }
+                            else{
+                                res.json({//inputted a passsword that isnt correct
                                     status: "Failed!",
-                                    message: "Unacceptable Password!"
+                                    message: "Incorrect Password!"
                                 })
-                            })
-                        }
-                        else{
-                            res.json({
-                                status: "Failed!",
-                                message: "Incorrect Password!"
-                            })
-                        }
-                    })
-                    .catch(err => {
-                        console.log(err, "There was an error comparing passwords")
-                    })
-                   
+                            }
+                        })
+                        .catch(err => {//error comparing passwords, log msg
+                            console.log(err, "There was an error comparing passwords")
+                        })
+                    
+                    }
+                    else{//return error if the user doesnt exist
+                        console.log("This email doesnt exist")
+                        return res.status(400).send("This email doesn't exist!");//sending status bc email doesnt exist
+                    }
+                } catch (err) {
+                    res.status(400).send(`Bad request ${err}`)
                 }
-                else{//return error if the user doesnt exist
-                    console.log("This email doesnt exist")
-                    return res.status(400).send("This email doesn't exist!");
-                }
-            } catch (err) {
-                res.status(400).send(`Bad request ${err}`)
             }
     })
     ////////////////////////////////////////////////////////LISTS////////////////////////////////////  
     ///////////////////////////////////////UNATHORIZED//////////////////////////////////////////////
     //display  lists
-    router.route('/heroes/lists')   
+    router.route('/heroes/lists')   ///finding the lists that are public to display them
     .get(async (req, res) => {
             try {
-                let list = await HeroList.find({isPrivate: false});
+                let list = await HeroList.find({isPrivate: false});//get the lists that are public
                 console.log(list, "All")
-                if(list){
+                if(list){//if list exists, return those lists
                     return res.json(list)
                 }
-                else {
+                else {//return that there isnt any public lists
                     return res.status(404).send('No lists found');
                 }
             } catch (error) {
@@ -1737,50 +1763,50 @@ routerUser.route('/user/changePass')//router to change a user's password
             }
         
     })
-    router.route('/heroes/lists/:privateName')   
-    .get(authenticateToken,async (req, res) => {
-
+    router.route('/heroes/lists/:privateName')   //get the lists made by a specific user
+    .get(authenticateToken,async (req, res) => {//only for authenticated users so use the token
+            const emailUser = req.params.privateName;//get parameters
             try {
-                const emailUser = req.params.privateName;
-                let list = await HeroList.find({createdByPrivate: emailUser});
+               
+                let list = await HeroList.find({createdByPrivate: emailUser});//get hero list for that user
                 console.log(list, "All")
-                if(list){
+                if(list){//return lists if exist
                     return res.json(list)
                 }
-                else {
+                else {//user didnt make any lists so return no lists found
                     return res.status(404).send('No lists found');
                 }
             } catch (error) {
                 console.log(error)
-                res.status(400).send('Error finding list');
+                res.status(400).send('Error finding list');//eror finding lists
             }
         
     })
 
-    router.route('/heroes/list/find/:listName')   
+    router.route('/heroes/list/find/:listName')   //route for finding a specific list
     .get(async (req, res) => {
             try {
-                let list = await HeroList.findOne({listN: req.body.listN});
+                let list = await HeroList.findOne({listN: req.body.listN});//get the specific use the unique name
                 console.log(list, "this is the list")
-                if(list){
+                if(list){//found specific list so send info
                     return res.json(list)
                 }
                 else {
-                    return res.status(404).send('No lists found');
+                    return res.status(404).send('No lists found');//eror bc no list found
                 }
             } catch (error) {
                 console.log(error)
-                res.status(400).send('Error finding list');
+                res.status(400).send('Error finding list');//error statement
             }
         
     })
     
     ////////////////////////////////////LISTS AUTHORIZED////////////////////////////////////////////
-    router.route('/list/delete')
+    router.route('/list/delete')//route to delete a list for authorized users
         .delete(async (req, res) => {
-            if(isAlphabetical(req.body.listN)){
+            if(isAlphabetical(req.body.listN)){ //making sure list name is just alphabetical
                 try {
-                    let list = await HeroList.deleteOne({ listN: req.body.listN });
+                    let list = await HeroList.deleteOne({ listN: req.body.listN });//deleting hero from a specific list
                     if(list.deletedCount === 1){
                         // List deleted successfully
                         //console.log('List removed');
@@ -1794,7 +1820,7 @@ routerUser.route('/user/changePass')//router to change a user's password
                 }
             } 
     });
-    router.route("/heroes/list/create")
+    router.route("/heroes/list/create")//creating a list for heroes
     .post(authenticateToken,async (req, res) => {//creating an empty list
         if(isAlphabetical(req.body.listN)){
             try {
@@ -1833,9 +1859,9 @@ routerUser.route('/user/changePass')//router to change a user's password
         }
     });
     
-    router.route(`/hero/add`)   
+    router.route(`/hero/add`)   //route for adding a hero
     .post(authenticateToken,async (req, res) => {
-        if(isAlphabetical(req.body.listN)){
+        if(isAlphabetical(req.body.listN)){//checking if list name is alphabetical
             try {
                 console.log("adding hero was called")
                 let list = await HeroList.findOne({listN: req.body.listN}); //finding list
@@ -1852,7 +1878,7 @@ routerUser.route('/user/changePass')//router to change a user's password
                             }
                             const currentDate = new Date();//getting current date
                             const formattedDate = currentDate.toISOString()
-                            list.lastModified = formattedDate;
+                            list.lastModified = formattedDate; //formated date
 
                         }
                         else{
@@ -1882,10 +1908,10 @@ routerUser.route('/user/changePass')//router to change a user's password
         }
     });
 
-    router.route('/delete/hero')
+    router.route('/delete/hero')//deleting a specific hero
     .delete(async (req, res) => {
         //console.log("m2")
-        const nameHeroCheck = req.body.nameHero;
+        const nameHeroCheck = req.body.nameHero; //checking if hero name isAlphabetical
         if(isAlphabetical(nameHeroCheck)){
             try {
                     let list = await HeroList.findOne({listN: req.body.listN}); //finding list
@@ -1928,8 +1954,9 @@ routerUser.route('/user/changePass')//router to change a user's password
         threshold: 0.000,
     }
 
-    router.route('/heroes/find/name/:nameH')
+    router.route('/heroes/find/name/:nameH')//route for finding a hero with a specific name
     .get(async (req,res)=>{
+        if(isAlphanumeric( req.params.nameH.toLowerCase().trim())){
 
         try{
             const nameHP = req.params.nameH.toLowerCase().trim(); //name sent
@@ -1967,49 +1994,63 @@ routerUser.route('/user/changePass')//router to change a user's password
 
         }catch(error){
             res.status(500).send(`Server unable to fulfill request! ${error}`)
-        }        
+        }       
+    } 
+    else {
+        console.log("Input is not valid!")
+    }
     });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////ADMIN FUNCTIONALITIES///////////////////////////////////
-routerUser.route('/checkAdmin/:email')
+routerUser.route('/checkAdmin/:email')//checking if user is an admin
 .get(authenticateToken,async (req,res)=>{
 
     try{
         const emailAdmin = req.params.email.toLowerCase().trim(); 
+        if(!isEmailValid(emailAdmin)){
+            console.log("This is not a valid email input!");
+            res.json({
+                status:"Failed!",
+                msg:"Email not Valid!"
+            })
+        }
+        else{
 
-        try {
-            let user = await User.findOne({ $and: [{email: emailAdmin},{isAdmin:true}]}); //finding list
-            console.log(user)
-            
-            if(user){
-                res.json(user)
+            try {
+                let user = await User.findOne({ $and: [{email: emailAdmin},{isAdmin:true}]}); //finding if that user is an admin, to grant them permissions
+                console.log(user)
+                
+                if(user){
+                    res.json(user)
 
-            }else {
-                return res.status(404).send("Not An Admin");
+                }else {
+                    return res.status(404).send("Not An Admin");//eror msg if not admin
+                }
+        
+            } catch (err) {
+                console.log("error",err)
             }
-       
-        } catch (err) {
-            console.log("erro11")
         }
 
     }catch(error){
-        res.status(500).send(`Server unable to fulfill request! ${error}`)
-    }        
+            res.status(500).send(`Server unable to fulfill request! ${error}`)
+    }    
+        
 });
-router.route('/heroes/lists/display/review')   
+router.route('/heroes/lists/display/review')   //displaying reviews
 .get(authenticateToken,async (req, res) => {
         try {
-            let list = await ReviewList.find({});
+            let list = await ReviewList.find({});//getting alll reviews to display
             //console.log(list, "All")
             if(list){
                 return res.json(list)
             }
             else {
-                return res.status(404).send('No lists found');
+                return res.status(404).send('No lists found');//no reviews found
             }
         } catch (error) {
             console.log(error)
-            res.status(400).send('Error finding list');
+            res.status(400).send('Error finding list');//trouble while trying to find list
         }
     
 })
@@ -2018,26 +2059,35 @@ router.route('/lists/review/updateReview')//route to change the hidden field
         try {
             const emailR = req.body.email.trim();//getting email
             const listName = req.body.listN.trim();//getting list name
-            const hidd = req.body.hidden;
-            const listReview = await ReviewList.findOne({ $and: [{email: emailR},{listN: listName}]});
-            console.log(listReview, "listReview")
-            if(listReview){
-                listReview.hidden = !(listReview.hidden);
-                console.log(listReview.hidden)
-               
-                const savedList = await listReview.save();
+            if(!isAlphanumeric(listName) || !isEmailValid(emailR)){
                 res.json({
-                    status:'SUCCESS!',
-                    msg:'Changed Hidden Field'
+                    status:"Failed",
+                    msg:"Invalid inputs!"
                 })
-                
-                
+
             }
-            else {
-                return res.status(404).send('No review found');
-            }
+            else{
+                // const hidd = req.body.hidden;
+                const listReview = await ReviewList.findOne({ $and: [{email: emailR},{listN: listName}]});//finding review by that email and by that list name
+                // console.log(listReview, "listReview")
+                if(listReview){
+                    listReview.hidden = !(listReview.hidden);
+                    //console.log(listReview.hidden)
+                
+                    const savedList = await listReview.save();//saving changes to make review hidden
+                    res.json({
+                        status:'SUCCESS!',
+                        msg:'Changed Hidden Field'//success msg
+                    })
+                    
+                    
+                }
+                else {
+                    return res.status(404).send('No review found');
+                }
+        }
         } catch (error) {
-            console.log(error,"error finding review")
+            console.log(error,"error finding review")//error msgs
             res.status(400).send('Error finding review');
         }
     
@@ -2046,27 +2096,36 @@ routerUser.route('/new/admin')//route to add an admin
 .post(authenticateToken,async (req, res) => {
         try {
             const emailNewAdmin = req.body.email.trim();//getting email
-        
-            const user = await User.findOne({email:emailNewAdmin});
-            console.log(user, "user")
-            if(user){
-                if(user.isAdmin === false){
-                    user.isAdmin = true;
-                    const userSaved = await user.save();
-                    res.json({
-                        status:'SUCCESS!',
-                        msg:'Added New Admin!'
-                    })
+            if(!isEmailValid(emailNewAdmin)){
+                res.json({
+                    status:'Failed!',
+                    msg:'Email not valid!'//success msg
 
-                }
-                else{
-                    res.json({
-                        msg:'User is already an Admin!' //if try to enter email where user is admin
-                    })
-                }
+                })
             }
             else {
-                return res.status(404).send('No user found!');
+        
+                const user = await User.findOne({email:emailNewAdmin});//finding user with that email
+                console.log(user, "user")
+                if(user){
+                    if(user.isAdmin === false){//if the admin value is false, make them admin
+                        user.isAdmin = true;
+                        const userSaved = await user.save();//saved changes
+                        res.json({
+                            status:'SUCCESS!',
+                            msg:'Added New Admin!'//added admin
+                        })
+
+                    }
+                    else{
+                        res.json({
+                            msg:'User is already an Admin!' //if try to enter email where user is admin
+                        })
+                    }
+                }
+                else {
+                    return res.status(404).send('No user found!');
+                }
             }
         } catch (error) {
             console.log(error,"error finding user")//eror msg for  adding admin if they cant find user by that email
@@ -2078,19 +2137,27 @@ routerUser.route('/disable/user')//route to disable user
 .post(authenticateToken,async (req, res) => {
         try {
             const emailUser = req.body.email.trim();//getting email
-        
-            const user = await User.findOne({email:emailUser});//finding user by email admin inputted
-            
-            if(user){
-                user.isDisabled = !user.isDisabled;//saving new info
-                const userSaved = await user.save();//saving new disable info
+            if(!isEmailValid(emailUser)){
                 res.json({
-                    disabled: user.isDisabled,
-                    status:'SUCCESS!'
+                    status:'Failed!',
+                    msg:'Email not valid!'//success msg
+
                 })
             }
-            else {
-                return res.status(404).send('No user found!');
+            else{
+                const user = await User.findOne({email:emailUser});//finding user by email admin inputted
+                
+                if(user){
+                    user.isDisabled = !user.isDisabled;//saving new info
+                    const userSaved = await user.save();//saving new disable info
+                    res.json({
+                        disabled: user.isDisabled, //reversing disabled status
+                        status:'SUCCESS!' //sending success msgs
+                    })
+                }
+                else {
+                    return res.status(404).send('No user found!');
+                }
             }
         } catch (error) {
             console.log(error,"error finding user")
@@ -2117,19 +2184,19 @@ routerUser.route('/disable/user')//route to disable user
 //         }
     
 // })
-router.route(`/list/review`)   
+router.route(`/list/review`)   //getting reviews
 .post(authenticateToken,async (req, res) => {
     if(isAlphabetical(req.body.listN)){
         try {
             console.log("review list was called")
-            let review = await ReviewList.findOne({ $and: [{listN: req.body.listN},{email:req.body.email}]}); //finding list
+            let review = await ReviewList.findOne({ $and: [{listN: req.body.listN},{email:req.body.email}]}); //finding specific list with name and email
                 // If the list exists, concatenate the new superheroes to it
                 console.log(review,"review")
-            if (review) {
+            if (review) {//if review exists
                 if(req.body.review !== ''){
                     console.log(req.body.review,"review")
                     console.log(review.comments,"comments")
-                    review.comments = review.comments.concat(req.body.review);
+                    review.comments = review.comments.concat(req.body.review);//adding new review to it
 
                 }
                 else{
@@ -2143,19 +2210,19 @@ router.route(`/list/review`)
                 review.lastModified = formattedDate;
 
                 
-                let list = await HeroList.findOne({email:req.body.email}); //finding list
+                let list = await HeroList.findOne({email:req.body.email}); //finding email, updating date since list was modified
                 if(list){
                     const currentDate2 = new Date();//getting current date
                     const formattedDate2 = currentDate2.toISOString()
-                    list.lastModified = formattedDate2;
+                    list.lastModified = formattedDate2; //new date
                 }
                 
                 
-                const savedList = await review.save();
+                const savedList = await review.save();//saving list
                 console.log(savedList)
                 res.json({
                     status: "SUCCESS!",
-                    message: "List Saved!"
+                    message: "List Saved!" //saving list
                 })
 
 
@@ -2167,7 +2234,7 @@ router.route(`/list/review`)
                 const formattedDate = currentDate.toISOString()
                 console.log("in else")
 
-                review = new ReviewList({
+                review = new ReviewList({//creating review if it didnt exist, with appropriate values
                       listN: req.body.listN,
                       username: req.body.username,
                       email: req.body.email,
@@ -2175,7 +2242,7 @@ router.route(`/list/review`)
                       rating: req.body.rating,
                       comments: req.body.review,
                 });
-                let list = await HeroList.findOne({email:req.body.email}); //finding list
+                let list = await HeroList.findOne({email:req.body.email}); //finding list to modify date
                 if(list){
                     const currentDate = new Date();//getting current date
                     const formattedDate = currentDate.toISOString()
@@ -2197,6 +2264,60 @@ router.route(`/list/review`)
         }
     }
 });
+routerUser.route('/admin/policy/create')//route to create a policy
+.post(authenticateToken,async (req, res) => {
+        try {
+            const titlePolicy = req.body.title;//getting title
+            const contentP = req.body.content;//getting content
+            const creator = req.body.createdBy;//getting creator
+        
+            let policy = await Policy.findOne({title:titlePolicy});//finding if policy exists 
+            
+            if(policy){//if policy exists, just update it
+                policy.content = contentP;
+                const currentDate = new Date();//getting current date
+                const formattedDate = currentDate.toISOString()
+                policy.createdAt = formattedDate;
+                const policySaved = await policy.save();//saving policy updates
+                res.json({msg:'Policy Modified!'})
+                console.log("policy modify")
+            }
+            else {
+                
+                policy = new Policy({//policy dne, do screate a new one with values
+                    title: titlePolicy,
+                    content: contentP,
+                    createdBy: creator,
+                });
+                const policySaved = await policy.save();//save new list
+                res.json({msg:'Policy Created!'})
+                console.log("policy modified")
+            }
+        } catch (error) {
+            console.log(error,"error making policy")
+            res.status(400).send('Error making policy');
+        }
+    
+})
+routerUser.route('/policies')//route to get policies and display them
+.get(async (req, res) => {
+        try {
+            let policy = await Policy.find({});//finding if policy exists 
+            console.log(policy,"policy")
+            
+            if(policy){
+               res.json(policy)
+            }
+            else {
+                res.json({msg:'No Policy Existing!'})
+                console.log("no policy")
+            }
+        } catch (error) {
+            console.log(error,"error finding policy")
+            res.status(400).send('Error finding policy');
+        }
+    
+})
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
